@@ -12,11 +12,13 @@ import Data.List.Split
 -- Try with just strings, benchmark, then try with Text?  {-import qualified Data.Text as T-}
 
 import System.IO 
-import System.Process
 import System.Exit
 
 import System.Console.ANSI
-import System.Console.Terminal.Size 
+
+import Tty
+
+{-TODO: implement withTty that handles restoring tty state-}
 
 data KeyPress = CtrlC | Enter | Backspace | PlainChar Char
 
@@ -27,29 +29,14 @@ data Search = Search
 
 data Action = NewSearch Search | MakeSelection Search | Abort
 
-clearCurrentLine :: Handle -> IO ()
-clearCurrentLine tty = do
-    Window _ w <- unsafeSize tty 
-    hSetCursorColumn tty 0
-    hPutStr tty $ replicate w ' '
-    hSetCursorColumn tty 0
+specialChars :: M.Map Char KeyPress
+specialChars = M.fromList [ ('\ETX', CtrlC)
+                          , ('\r',   Enter)
+                          , ('\DEL',   Backspace)]
 
-writeLine :: Handle -> String -> IO ()
-writeLine tty line = do
-    clearCurrentLine tty
-    hPutStr tty line
-    hCursorDown tty 1
+charToKeypress :: Char -> KeyPress
+charToKeypress c = fromMaybe (PlainChar c) (M.lookup c specialChars)
 
-withCursorHidden :: Handle -> IO () -> IO ()
-withCursorHidden tty action = do
-    hHideCursor tty 
-    action
-    hShowCursor tty 
-
-writeLines :: Handle -> [String] -> IO ()
-writeLines tty lns = do
-    mapM_ (writeLine tty) lns
-    hCursorUp tty (length lns)
 
 -- just match anything that contains all the characters for now
 matches :: String -> [String] -> [String]
@@ -66,18 +53,6 @@ render tty (Search {query=q, choices=cs}) = withCursorHidden tty $ do
   where 
     pad xs = xs ++ replicate (choicesToShow - length xs) " "
 
-clearLines :: Handle -> Int -> IO ()
-clearLines tty n = do 
-    writeLines tty (replicate n "")
-    hCursorUp tty n
-
-specialChars :: M.Map Char KeyPress
-specialChars = M.fromList [ ('\ETX', CtrlC)
-                          , ('\r',   Enter)
-                          , ('\DEL',   Backspace)]
-
-charToKeypress :: Char -> KeyPress
-charToKeypress c = fromMaybe (PlainChar c) (M.lookup c specialChars)
 
 -- TODO: Handle exceptions, ensure tty gets restored to default settings
 -- TODO: Ensure handle to tty is closed?  See what GB ensures.
@@ -87,9 +62,6 @@ configureTty tty = do
     hSetBuffering tty NoBuffering 
     {-hSetSGR tty [SetColor Background Vivid White]-}
     ttyCommand  "stty raw -echo cbreak"
-
-saneTty :: IO ()
-saneTty = ttyCommand "stty sane"
 
 {-restoreTTY :: IO ()-}
 
@@ -119,20 +91,6 @@ handleInput inputChar search =
         Backspace -> NewSearch search { query = dropLast $ query search }
         PlainChar c -> NewSearch search { query = query search ++ [c] }
 
-executeAction :: Handle -> Action -> IO ()
-executeAction tty action = case action of 
-    Abort -> abort tty
-    MakeSelection search -> makeSelection tty search
-    NewSearch search -> render tty search
-
-
-unsafeSize :: (Integral n) => Handle -> IO (Window n)
-unsafeSize h = do
-    mWindow <- hSize h 
-    case mWindow of
-        Just x -> return x
-        Nothing -> error "couldn't get window size"
-
 choicesToShow :: Int
 choicesToShow = 10
 
@@ -157,18 +115,3 @@ main = do
           NewSearch newSearch -> do
               render tty newSearch
               loop tty newSearch
-      {-executeAction tty a-}
-
-    
-ttyCommand :: String -> IO ()
-ttyCommand command = do
-    -- this will close the stdin handle, we need to use a second handle to 
-    -- /dev/tty
-    ttyTmpHandle <- openFile "/dev/tty" ReadMode
-    let procSpec = (shell command) { std_in = UseHandle ttyTmpHandle }
-    (_, _, _, processHandle) <- createProcess procSpec
-    exitCode <- waitForProcess processHandle 
-    case exitCode of
-        ExitFailure code -> error $ "Failed to configure tty (Exit code: "
-                                      ++ show code ++ ")"
-        ExitSuccess -> return ()
