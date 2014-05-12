@@ -1,12 +1,16 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import Control.Monad
+import Control.Parallel.Strategies
+
 {-import Control.Concurrent (threadDelay)-}
 
+import Data.List
 import Data.Char
 import qualified Data.Map as M
 import Data.Maybe
 import Data.Monoid
+import Data.Function (on)
 
 -- Try with just strings, benchmark, then try with Text?  {-import qualified Data.Text as T-}
 
@@ -26,7 +30,13 @@ data Search = Search
     , choices :: [String]
     , selection :: Int } deriving Show
 
-data Action = NewSearch Search | Choice String | Abort
+data Choice = Choice 
+    { 
+        finalMatches :: [String]
+      , matchIndex :: Int
+    }
+
+data Action = NewSearch Search | MakeChoice Choice | Abort
 
 specialChars :: M.Map Char KeyPress
 specialChars = M.fromList [ ('\ETX', CtrlC)
@@ -36,11 +46,33 @@ specialChars = M.fromList [ ('\ETX', CtrlC)
 charToKeypress :: Char -> KeyPress
 charToKeypress c = fromMaybe (PlainChar c) (M.lookup c specialChars)
 
+hasMatch :: String -> String -> Bool
+hasMatch [] _ = True
+hasMatch _ [] = False
+hasMatch (q:restOfQuery) choice = 
+  case elemIndex q choice of
+    Just i -> hasMatch restOfQuery (drop (i+1) choice)
+    Nothing -> False
 
--- just match anything that contains all the characters for now
+score :: String -> String -> Int
+score q choice
+    | null q      = 1
+    | null choice = 0
+    | otherwise = 
+        let lowerQ      = map toLower q
+            lowerChoice = map toLower choice
+        in if hasMatch lowerQ lowerChoice 
+           then 1 
+           else 0
+
 matches :: String -> [String] -> [String]
-matches q = filter (\s -> all (`elem` map toLower s) 
-                              (map toLower q))
+matches qry chs = take choicesToShow $ 
+                  map fst $ 
+                  filter (\(_,cScore) -> cScore > 0) $
+                  sortBy (flip compare `on` snd) scoredChoices
+  where 
+      scoredChoices =  map (\choice -> (choice, score qry choice)) chs
+                       `using` parListChunk 10000 rdeepseq
 
 {-TODO: this shiould return [string] and then writelines should be called on it-}
 render :: Search -> (String, [String])
@@ -54,25 +86,18 @@ render (Search {query=q, choices=cs}) =
 
 -- TODO: Handle exceptions, ensure tty gets restored to default settings
 -- TODO: Ensure handle to tty is closed?  See what GB ensures.
-configureTty :: Handle -> IO ()
-configureTty tty = do
-    -- LineBuffering by default requires hitting enter to see anything
-    hSetBuffering tty NoBuffering 
-    {-hSetSGR tty [SetColor Background Vivid White]-}
-    ttyCommand  "stty raw -echo cbreak"
-
 {-restoreTTY :: IO ()-}
 
 dropLast :: String -> String
 dropLast = reverse . drop 1 . reverse
 
-writeSelection :: Handle -> String -> IO ()
+writeSelection :: Handle -> Choice -> IO ()
 writeSelection tty choice = do
-    hCursorDown tty choicesToShow 
+    hCursorDown tty $ length $ finalMatches choice
     hSetCursorColumn tty 0 
     saneTty
     hPutStr tty "\n"
-    putStrLn choice
+    putStrLn (finalMatches choice !! matchIndex choice)
     exitSuccess
 
 abort :: Handle -> IO ()
@@ -85,7 +110,10 @@ handleInput :: Char -> Search -> Action
 handleInput inputChar search = 
     case charToKeypress inputChar of
         CtrlC -> Abort
-        Enter -> Choice (head $ matches (query search) (choices search))
+        Enter -> MakeChoice Choice { 
+                                  finalMatches = matches (query search) (choices search)
+                                , matchIndex = selection search
+                              } 
         Backspace   -> NewSearch search { query = dropLast $ query search }
         PlainChar c -> NewSearch search { query = query search ++ [c] }
 
@@ -96,22 +124,22 @@ main :: IO ()
 main = do
     tty <- openFile "/dev/tty" ReadWriteMode
     configureTty tty
-    initialChoices <- liftM (take 10 . lines) getContents
+    initialChoices <- liftM lines getContents
 
     let initSearch = Search { query="", choices=initialChoices, selection=0 }
 
-    _ <- loop tty initSearch 
+    _ <- eventLoop tty initSearch 
 
     saneTty -- duplicated in writeSelection
     hClose tty 
   where
-    loop tty search = do
+    eventLoop tty search = do
       x <- hGetChar tty 
       case handleInput x search of
           Abort -> abort tty
-          Choice c -> writeSelection tty c
+          MakeChoice c -> writeSelection tty c
           NewSearch newSearch -> do
               let (queryLine, renderedLines) = render newSearch
               withCursorHidden tty $ writeLines tty renderedLines
               hSetCursorColumn tty (length queryLine)
-              loop tty newSearch
+              eventLoop tty newSearch

@@ -10,6 +10,13 @@ import System.Console.Terminal.Size
 saneTty :: IO ()
 saneTty = ttyCommand "stty sane"
 
+configureTty :: Handle -> IO ()
+configureTty tty = do
+    -- LineBuffering by default requires hitting enter to see anything
+    hSetBuffering tty NoBuffering 
+    {-hSetSGR tty [SetColor Background Vivid White]-}
+    ttyCommand  "stty raw -echo cbreak"
+
 writeLine :: Handle -> String -> IO ()
 writeLine tty line = do
     clearCurrentLine tty
