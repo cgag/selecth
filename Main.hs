@@ -25,6 +25,8 @@ data Search = Search
     , choices :: [String]
     , selection :: Int } deriving Show
 
+data Action = NewSearch Search | MakeSelection Search | Abort
+
 clearCurrentLine :: Handle -> IO ()
 clearCurrentLine tty = do
     Window _ w <- unsafeSize tty 
@@ -62,7 +64,7 @@ render tty (Search {query=q, choices=cs}) = withCursorHidden tty $ do
     hSetCursorColumn tty 0
     hCursorForward tty (length queryLine)
   where 
-      pad xs = xs ++ replicate (choicesToShow - length xs) " "
+    pad xs = xs ++ replicate (choicesToShow - length xs) " "
 
 clearLines :: Handle -> Int -> IO ()
 clearLines tty n = do 
@@ -94,25 +96,34 @@ saneTty = ttyCommand "stty sane"
 dropLast :: String -> String
 dropLast = reverse . drop 1 . reverse
 
-handleInput :: Handle -> Search -> IO ()
-handleInput tty search = do
-    x <- hGetChar tty 
-    case charToKeypress x of
-        CtrlC -> hCursorDown tty 1 >> putStrLn "Quit :(" 
-        Enter -> hCursorDown tty choicesToShow 
-                 >> hSetCursorColumn tty 0 
-                 >> saneTty
-                 >> hPutStr tty "\n"
-                 >> putStrLn (query search)
-        Backspace -> do 
-            let newSearch = search { query = dropLast $ query search }
-            render tty newSearch
-            handleInput tty newSearch
+makeSelection :: Handle -> Search -> IO ()
+makeSelection tty search = do
+    hCursorDown tty choicesToShow 
+    hSetCursorColumn tty 0 
+    saneTty
+    hPutStr tty "\n"
+    putStrLn (query search)
+    exitSuccess
 
-        PlainChar c -> do
-            let newSearch = search { query = query search ++ [c] }
-            render tty newSearch
-            handleInput tty newSearch
+abort :: Handle -> IO ()
+abort tty = do
+    hCursorDown tty 1 
+    putStrLn "Quit :(" 
+    exitSuccess
+
+handleInput :: Char -> Search -> Action
+handleInput inputChar search = 
+    case charToKeypress inputChar of
+        CtrlC -> Abort
+        Enter -> MakeSelection search
+        Backspace -> NewSearch search { query = dropLast $ query search }
+        PlainChar c -> NewSearch search { query = query search ++ [c] }
+
+executeAction :: Handle -> Action -> IO ()
+executeAction tty action = case action of 
+    Abort -> abort tty
+    MakeSelection search -> makeSelection tty search
+    NewSearch search -> render tty search
 
 
 unsafeSize :: (Integral n) => Handle -> IO (Window n)
@@ -133,11 +144,22 @@ main = do
 
     let initSearch = Search { query="", choices=initialChoices, selection=0 }
 
-    handleInput tty initSearch
+    _ <- loop tty initSearch 
 
     {-saneTty-}
-    hClose tty
+    hClose tty 
+  where
+    loop tty search = do
+      x <- hGetChar tty 
+      case handleInput x search of
+          Abort -> abort tty
+          MakeSelection s -> makeSelection tty s
+          NewSearch newSearch -> do
+              render tty newSearch
+              loop tty newSearch
+      {-executeAction tty a-}
 
+    
 ttyCommand :: String -> IO ()
 ttyCommand command = do
     -- this will close the stdin handle, we need to use a second handle to 
