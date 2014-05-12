@@ -7,7 +7,6 @@ import Data.Char
 import qualified Data.Map as M
 import Data.Maybe
 import Data.Monoid
-import Data.List.Split 
 
 -- Try with just strings, benchmark, then try with Text?  {-import qualified Data.Text as T-}
 
@@ -27,7 +26,7 @@ data Search = Search
     , choices :: [String]
     , selection :: Int } deriving Show
 
-data Action = NewSearch Search | MakeSelection Search | Abort
+data Action = NewSearch Search | Choice String | Abort
 
 specialChars :: M.Map Char KeyPress
 specialChars = M.fromList [ ('\ETX', CtrlC)
@@ -43,13 +42,12 @@ matches :: String -> [String] -> [String]
 matches q = filter (\s -> all (`elem` map toLower s) 
                               (map toLower q))
 
-{-TODO: this shiould return string and then writelines should be called on it-}
-render :: Handle -> Search -> IO ()
-render tty (Search {query=q, choices=cs}) = withCursorHidden tty $ do
-    let queryLine = "> " <> q 
-    mapM_ (writeLines tty . (queryLine:)) $ chunksOf choicesToShow $ pad $ matches q cs
-    hSetCursorColumn tty 0
-    hCursorForward tty (length queryLine)
+{-TODO: this shiould return [string] and then writelines should be called on it-}
+render :: Search -> (String, [String])
+render (Search {query=q, choices=cs}) = 
+    let queryLine = "> " <> q
+        matchLines = pad (take choicesToShow $ matches q cs)  
+    in (queryLine, queryLine : matchLines)
   where 
     pad xs = xs ++ replicate (choicesToShow - length xs) " "
 
@@ -68,13 +66,13 @@ configureTty tty = do
 dropLast :: String -> String
 dropLast = reverse . drop 1 . reverse
 
-makeSelection :: Handle -> Search -> IO ()
-makeSelection tty search = do
+writeSelection :: Handle -> String -> IO ()
+writeSelection tty choice = do
     hCursorDown tty choicesToShow 
     hSetCursorColumn tty 0 
     saneTty
     hPutStr tty "\n"
-    putStrLn (query search)
+    putStrLn choice
     exitSuccess
 
 abort :: Handle -> IO ()
@@ -87,8 +85,8 @@ handleInput :: Char -> Search -> Action
 handleInput inputChar search = 
     case charToKeypress inputChar of
         CtrlC -> Abort
-        Enter -> MakeSelection search
-        Backspace -> NewSearch search { query = dropLast $ query search }
+        Enter -> Choice (head $ matches (query search) (choices search))
+        Backspace   -> NewSearch search { query = dropLast $ query search }
         PlainChar c -> NewSearch search { query = query search ++ [c] }
 
 choicesToShow :: Int
@@ -104,14 +102,16 @@ main = do
 
     _ <- loop tty initSearch 
 
-    {-saneTty-}
+    saneTty -- duplicated in writeSelection
     hClose tty 
   where
     loop tty search = do
       x <- hGetChar tty 
       case handleInput x search of
           Abort -> abort tty
-          MakeSelection s -> makeSelection tty s
+          Choice c -> writeSelection tty c
           NewSearch newSearch -> do
-              render tty newSearch
+              let (queryLine, renderedLines) = render newSearch
+              withCursorHidden tty $ writeLines tty renderedLines
+              hSetCursorColumn tty (length queryLine)
               loop tty newSearch
