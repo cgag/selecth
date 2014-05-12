@@ -1,17 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 
--- TODO: no prelude at all
-import Prelude hiding (lookup)
-
 import Control.Monad
+{-import Control.Concurrent (threadDelay)-}
 
-import Data.Map
+import Data.Char
+import qualified Data.Map as M
 import Data.Maybe
 import Data.Monoid
 import Data.List.Split 
 
--- Try with just strings, benchmark, then try with Text?
-import qualified Data.Text as T
+-- Try with just strings, benchmark, then try with Text?  {-import qualified Data.Text as T-}
 
 import System.IO 
 import System.Process
@@ -20,25 +18,67 @@ import System.Exit
 import System.Console.ANSI
 import System.Console.Terminal.Size 
 
-data KeyPress = CtrlC | Enter | PlainChar Char
+data KeyPress = CtrlC | Enter | Backspace | PlainChar Char
 
 data Search = Search  
-    { query :: T.Text 
-    , choices :: [T.Text]} deriving Show
+    { query :: String
+    , choices :: [String]
+    , selection :: Int } deriving Show
 
-render :: Search -> T.Text
-render (Search {query=q, choices=cs}) = "> " <> q <> "\n" <> T.unlines cs
+clearCurrentLine :: Handle -> IO ()
+clearCurrentLine tty = do
+    Window _ w <- unsafeSize tty 
+    hSetCursorColumn tty 0
+    hPutStr tty $ replicate w ' '
+    hSetCursorColumn tty 0
 
-specialChars :: Map Char KeyPress
-specialChars = fromList [ ('\ETX', CtrlC)
-                        , ('\r',   Enter)]
+writeLine :: Handle -> String -> IO ()
+writeLine tty line = do
+    clearCurrentLine tty
+    hPutStr tty line
+    hCursorDown tty 1
+
+withCursorHidden :: Handle -> IO () -> IO ()
+withCursorHidden tty action = do
+    hHideCursor tty 
+    action
+    hShowCursor tty 
+
+writeLines :: Handle -> [String] -> IO ()
+writeLines tty lns = do
+    mapM_ (writeLine tty) lns
+    hCursorUp tty (length lns)
+
+-- just match anything that contains all the characters for now
+matches :: String -> [String] -> [String]
+matches q = filter (\s -> all (`elem` map toLower s) 
+                              (map toLower q))
+
+{-TODO: this shiould return string and then writelines should be called on it-}
+render :: Handle -> Search -> IO ()
+render tty (Search {query=q, choices=cs}) = withCursorHidden tty $ do
+    let queryLine = "> " <> q 
+    mapM_ (writeLines tty . (queryLine:)) $ chunksOf choicesToShow $ pad $ matches q cs
+    hSetCursorColumn tty 0
+    hCursorForward tty (length queryLine)
+  where 
+      pad xs = xs ++ replicate (choicesToShow - length xs) " "
+
+clearLines :: Handle -> Int -> IO ()
+clearLines tty n = do 
+    writeLines tty (replicate n "")
+    hCursorUp tty n
+
+specialChars :: M.Map Char KeyPress
+specialChars = M.fromList [ ('\ETX', CtrlC)
+                          , ('\r',   Enter)
+                          , ('\DEL',   Backspace)]
 
 charToKeypress :: Char -> KeyPress
-charToKeypress c = fromMaybe (PlainChar c) (lookup c specialChars)
+charToKeypress c = fromMaybe (PlainChar c) (M.lookup c specialChars)
 
 -- TODO: Handle exceptions, ensure tty gets restored to default settings
 -- TODO: Ensure handle to tty is closed?  See what GB ensures.
-
 configureTty :: Handle -> IO ()
 configureTty tty = do
     -- LineBuffering by default requires hitting enter to see anything
@@ -51,15 +91,28 @@ saneTty = ttyCommand "stty sane"
 
 {-restoreTTY :: IO ()-}
 
-handleInput :: Handle -> IO ()
-handleInput tty = do
+dropLast :: String -> String
+dropLast = reverse . drop 1 . reverse
+
+handleInput :: Handle -> Search -> IO ()
+handleInput tty search = do
     x <- hGetChar tty 
     case charToKeypress x of
         CtrlC -> hCursorDown tty 1 >> putStrLn "Quit :(" 
-        Enter -> hCursorDown tty 1 >> putStrLn "Done" 
+        Enter -> hCursorDown tty choicesToShow 
+                 >> hSetCursorColumn tty 0 
+                 >> saneTty
+                 >> hPutStr tty "\n"
+                 >> putStrLn (query search)
+        Backspace -> do 
+            let newSearch = search { query = dropLast $ query search }
+            render tty newSearch
+            handleInput tty newSearch
+
         PlainChar c -> do
-            hPutChar tty c
-            handleInput tty
+            let newSearch = search { query = query search ++ [c] }
+            render tty newSearch
+            handleInput tty newSearch
 
 
 unsafeSize :: (Integral n) => Handle -> IO (Window n)
@@ -69,56 +122,20 @@ unsafeSize h = do
         Just x -> return x
         Nothing -> error "couldn't get window size"
 
-linesToShow :: Int
-linesToShow = 10
+choicesToShow :: Int
+choicesToShow = 10
 
 main :: IO ()
 main = do
     tty <- openFile "/dev/tty" ReadWriteMode
     configureTty tty
+    initialChoices <- liftM (take 10 . lines) getContents
 
-    hHideCursor tty
-    {-hSetCursorPosition tty 1 0-}
+    let initSearch = Search { query="", choices=initialChoices, selection=0 }
 
-    hSetCursorColumn tty 0
+    handleInput tty initSearch
 
-    replicateM_ (linesToShow + 1) $ hPutChar tty '\n'
-    hCursorUp tty (linesToShow + 1)
-
-    hPutStr tty "> QUERY"
-
-    hCursorDown tty 1
-    hSetCursorColumn tty 0
-
-    
-    inputFiles <- getContents 
-
-    mapM_ (\wordList -> do
-
-              replicateM_ linesToShow $ do
-                  hPutStr tty "                            " 
-                  hCursorDown tty 1 
-                  hSetCursorColumn tty 0
-              
-              hCursorUp tty linesToShow
-
-              mapM_ (\word -> do
-                        hPutStr tty word
-                        hSetCursorColumn tty 0
-                        hCursorDown tty 1) 
-                    wordList
-
-              hCursorUp tty linesToShow
-          ) 
-          $ chunksOf linesToShow $ drop 400 $ take 10000 $ lines inputFiles 
-
-    hCursorDown tty linesToShow
-
-    handleInput tty
-
-    hSetCursorColumn tty 0
-
-    saneTty
+    {-saneTty-}
     hClose tty
 
 ttyCommand :: String -> IO ()
@@ -130,6 +147,6 @@ ttyCommand command = do
     (_, _, _, processHandle) <- createProcess procSpec
     exitCode <- waitForProcess processHandle 
     case exitCode of
-        (ExitFailure code) -> error $ "Failed to configure tty (Exit code: "
-                                          ++ show code ++ ")"
+        ExitFailure code -> error $ "Failed to configure tty (Exit code: "
+                                      ++ show code ++ ")"
         ExitSuccess -> return ()
