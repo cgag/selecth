@@ -72,7 +72,7 @@ matches qry chs = take choicesToShow $
                   sortBy (flip compare `on` snd) scoredChoices
   where 
       scoredChoices =  map (\choice -> (choice, score qry choice)) chs
-                       `using` parListChunk 10000 rdeepseq
+                       {-`using` parListChunk 10000 rdeepseq-}
 
 {-TODO: this shiould return [string] and then writelines should be called on it-}
 render :: Search -> (String, [String])
@@ -97,7 +97,7 @@ writeSelection tty choice = do
     hSetCursorColumn tty 0 
     saneTty
     hPutStr tty "\n"
-    putStrLn (finalMatches choice !! matchIndex choice)
+    putStrLn (finalMatches choice !! matchIndex choice) -- DANGEROUS 
     exitSuccess
 
 abort :: Handle -> IO ()
