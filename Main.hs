@@ -1,12 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import Control.Monad
-import Control.Parallel.Strategies
+{-import Control.Parallel.Strategies-}
 
 {-import Control.Concurrent (threadDelay)-}
 
 import Data.List
-import Data.Char
 import qualified Data.Map as M
 import Data.Maybe
 import Data.Monoid
@@ -20,6 +19,7 @@ import System.Exit
 import System.Console.ANSI
 
 import Tty
+import Score
 
 {-TODO: implement withTty that handles restoring tty state-}
 
@@ -31,9 +31,8 @@ data Search = Search
     , selection :: Int } deriving Show
 
 data Choice = Choice 
-    { 
-        finalMatches :: [String]
-      , matchIndex :: Int
+    { finalMatches :: [String]
+    , matchIndex :: Int
     }
 
 data Action = NewSearch Search | MakeChoice Choice | Abort
@@ -45,25 +44,6 @@ specialChars = M.fromList [ ('\ETX', CtrlC)
 
 charToKeypress :: Char -> KeyPress
 charToKeypress c = fromMaybe (PlainChar c) (M.lookup c specialChars)
-
-hasMatch :: String -> String -> Bool
-hasMatch [] _ = True
-hasMatch _ [] = False
-hasMatch (q:restOfQuery) choice = 
-  case elemIndex q choice of
-    Just i -> hasMatch restOfQuery (drop (i+1) choice)
-    Nothing -> False
-
-score :: String -> String -> Int
-score q choice
-    | null q      = 1
-    | null choice = 0
-    | otherwise = 
-        let lowerQ      = map toLower q
-            lowerChoice = map toLower choice
-        in if hasMatch lowerQ lowerChoice 
-           then 1 
-           else 0
 
 matches :: String -> [String] -> [String]
 matches qry chs = take choicesToShow $ 
