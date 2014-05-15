@@ -3,6 +3,7 @@
 ### Haskell ###
 dist
 cabal-dev
+codex.tags
 *.o
 *.hi
 *.chi
