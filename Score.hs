@@ -34,8 +34,12 @@ minMatchLength query@(q:_) choice =
      then 0
      else minimum lengths
 
-score :: String -> String -> Int
+score :: Fractional n => String -> String -> n
 score q choice
     | null q      = 1
     | null choice = 0
-    | otherwise = minMatchLength (map toLower q) (map toLower choice)
+    | otherwise = let minLength = minMatchLength (map toLower q) (map toLower choice)
+                  in if minLength > 0 
+                     then ((fromIntegral $ length q) / fromIntegral minLength) -- penalize bigger match lengths
+                          / fromIntegral (length choice) -- penalize longer choice strings
+                     else 0 
