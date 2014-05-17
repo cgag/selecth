@@ -30,9 +30,7 @@ matchLength q str
                                   Nothing -> 0
 
 vecTails :: V.Vector a -> [V.Vector a]
-vecTails v 
-    | V.null v = [V.empty]
-    | otherwise = v : vecTails (V.unsafeTail v)
+vecTails v = map (`V.drop` v) [0..(V.length v)]
 
 minMatchLength :: V.Vector Char -> V.Vector Char -> Int
 minMatchLength query choice

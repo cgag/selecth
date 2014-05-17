@@ -15,7 +15,7 @@ buildChoices base baseReps totalChoices =
 main :: IO ()
 main = do
     contents <- readFile "test/benchmark/words"
-    let benchWords = map V.fromList $ lines contents 
+    let benchWords = map V.fromList $! lines contents 
 
     defaultMain [
           bgroup "scoring" 
