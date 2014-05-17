@@ -3,6 +3,10 @@ module Score where
 import Data.Char
 import Data.List
 
+-- IDEA: look for position of last character first to limit
+-- the potential search area of end match or quickly eliminate the str
+-- -- Do this with all chars?
+
 -- TODO: test this properly
 -- TODO: matchLength searches for first char anywhere in string,
 -- it should return 0 if first char isn't correct, otherwise find endMatch
@@ -23,6 +27,9 @@ matchLength (firstChar:rest) str =
         Just i -> endMatch qs (drop (i + 1) s) (i + 1 + lastIndex)
         Nothing -> 0
 
+{-hasMatch :: String -> String -> Bool-}
+{-hasMatch query choice = True-}
+
 
 minMatchLength :: String -> String -> Int
 minMatchLength [] _ = 1
@@ -30,7 +37,9 @@ minMatchLength _ [] = 0
 minMatchLength query@(q:_) choice = 
   let lengths = filter (>0) 
                 $ map (matchLength query)
-                $ filter (isPrefixOf [q])
+                {-$ filter (hasMatch query)-}
+                $ filter ((== q) . head) 
+                $ filter (not . null)
                 $ tails choice
   in if null lengths 
      then 0
