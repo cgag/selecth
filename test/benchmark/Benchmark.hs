@@ -3,7 +3,7 @@ import Criterion.Main
 import Score
 
 scoreBench :: String -> [String] -> Pure
-scoreBench query = nf $ map (score query)
+scoreBench query = nf $ scoreAll query
 
 buildWord :: String -> Int -> String
 buildWord base baseReps = concat $ replicate baseReps base
@@ -16,13 +16,18 @@ main :: IO ()
 main = do
     contents <- openFile "test/benchmark/words" ReadMode >>= hGetContents 
     let benchWords = read contents :: [String]
+    let cxs  =  buildChoices "x" 16 1000
+    let cxys = buildChoices "xy" 16 1000
+
+    -- force eval?
+    putStrLn (last benchWords)
 
     defaultMain [
           bgroup "scoring" 
-            [ bench "non-matching" $ scoreBench (replicate 16 'y') $ buildChoices "x" 16 1000
-            , bench "matching exactly" $ scoreBench (replicate 16 'x') $ buildChoices "x" 16 1000
-            , bench "matching broken up" $ scoreBench (replicate 16 'x') $ buildChoices "xy" 16 1000
-            , bench "overlapping matches" $ scoreBench (replicate 16 'x') $ buildChoices "x" 40 1000
+            [ bench "non-matching" $ scoreBench (replicate 16 'y') $ cxs
+            , bench "matching exactly" $ scoreBench (replicate 16 'x') $ cxs
+            , bench "matching broken up" $ scoreBench (replicate 16 'x') $ cxys
+            , bench "overlapping matches" $ scoreBench (replicate 16 'x') $ cxs
             , bench "words, non-matching" $ scoreBench (replicate 16 'x') benchWords
             , bench "words, matching" $ scoreBench "ungovernableness" benchWords
             ]

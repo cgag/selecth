@@ -1,0 +1,160 @@
+	Sat May 17 05:09 2014 Time and Allocation Profiling Report  (Final)
+
+	   benchmark +RTS -p -RTS -s 10
+
+	total time  =       47.39 secs   (47391 ticks @ 1000 us, 1 processor)
+	total alloc = 22,652,925,560 bytes  (excludes profiling overheads)
+
+COST CENTRE       MODULE                %time %alloc
+
+uniform           System.Random.MWC      62.8   56.1
+MAIN              MAIN                   30.5   41.8
+resample.\.loop   Statistics.Resampling   3.4    1.0
+resample          Statistics.Resampling   1.6    0.7
+resample.\.loop.\ Statistics.Resampling   1.3    0.4
+
+
+                                                                                               individual     inherited
+COST CENTRE                         MODULE                                   no.     entries  %time %alloc   %time %alloc
+
+MAIN                                MAIN                                     172           0   30.5   41.8   100.0  100.0
+ get                                Statistics.Resampling.Bootstrap          463           0    0.0    0.0     0.0    0.0
+ put                                Statistics.Resampling.Bootstrap          461          12    0.0    0.0     0.0    0.0
+ estConfidenceLevel                 Statistics.Resampling.Bootstrap          460          12    0.0    0.0     0.0    0.0
+ estUpperBound                      Statistics.Resampling.Bootstrap          459          12    0.0    0.0     0.0    0.0
+ estLowerBound                      Statistics.Resampling.Bootstrap          458          12    0.0    0.0     0.0    0.0
+ bootstrapBCA                       Statistics.Resampling.Bootstrap          371           6    0.0    0.0     0.0    0.0
+  bootstrapBCA.e                    Statistics.Resampling.Bootstrap          372          12    0.0    0.0     0.0    0.0
+   estimate                         Statistics.Resampling.Bootstrap          452          12    0.0    0.0     0.0    0.0
+   bootstrapBCA.e.hi                Statistics.Resampling.Bootstrap          448          12    0.0    0.0     0.0    0.0
+    bootstrapBCA.e.hi.a2            Statistics.Resampling.Bootstrap          451          12    0.0    0.0     0.0    0.0
+    bootstrapBCA.e.hi.b2            Statistics.Resampling.Bootstrap          450          12    0.0    0.0     0.0    0.0
+    bootstrapBCA.e.cumn             Statistics.Resampling.Bootstrap          449           0    0.0    0.0     0.0    0.0
+   bootstrapBCA.e.accel             Statistics.Resampling.Bootstrap          433          12    0.0    0.0     0.0    0.0
+    bootstrapBCA.e.accel.sumSquares Statistics.Resampling.Bootstrap          446          12    0.0    0.0     0.0    0.0
+    bootstrapBCA.e.accel.f.d2       Statistics.Resampling.Bootstrap          440          12    0.0    0.0     0.0    0.0
+    bootstrapBCA.e.accel.jackMean   Statistics.Resampling.Bootstrap          438          12    0.0    0.0     0.0    0.0
+     mean                           Statistics.Sample                        439          12    0.0    0.0     0.0    0.0
+    bootstrapBCA.e.accel.f          Statistics.Resampling.Bootstrap          437          12    0.0    0.0     0.0    0.0
+    bootstrapBCA.e.accel.f.d        Statistics.Resampling.Bootstrap          436          12    0.0    0.0     0.0    0.0
+    bootstrapBCA.e.accel.(...)      Statistics.Resampling.Bootstrap          435          12    0.0    0.0     0.0    0.0
+     bootstrapBCA.e.accel.f.d2      Statistics.Resampling.Bootstrap          445         108    0.0    0.0     0.0    0.0
+     bootstrapBCA.e.accel.f.d       Statistics.Resampling.Bootstrap          444         108    0.0    0.0     0.0    0.0
+     bootstrapBCA.e.accel.f         Statistics.Resampling.Bootstrap          441         108    0.0    0.0     0.0    0.0
+    bootstrapBCA.e.accel.sumCubes   Statistics.Resampling.Bootstrap          434          12    0.0    0.0     0.0    0.0
+   bootstrapBCA.e.jack              Statistics.Resampling.Bootstrap          402          12    0.0    0.0     0.0    0.0
+    jackknife                       Statistics.Resampling                    403          12    0.0    0.0     0.0    0.0
+     jackknifeMean                  Statistics.Resampling                    453           6    0.0    0.0     0.0    0.0
+      jackknifeMean.l               Statistics.Resampling                    457           6    0.0    0.0     0.0    0.0
+      pfxSumR                       Statistics.Resampling                    456           0    0.0    0.0     0.0    0.0
+      pfxSumL                       Statistics.Resampling                    455           0    0.0    0.0     0.0    0.0
+      jackknifeMean.len             Statistics.Resampling                    454           6    0.0    0.0     0.0    0.0
+     jackknifeStdDev                Statistics.Resampling                    405           0    0.0    0.0     0.0    0.0
+      jackknifeVarianceUnb          Statistics.Resampling                    407           0    0.0    0.0     0.0    0.0
+       jackknifeVariance_           Statistics.Resampling                    408           6    0.0    0.0     0.0    0.0
+        jackknifeVariance_.n        Statistics.Resampling                    430           6    0.0    0.0     0.0    0.0
+        jackknifeVariance_.go.b     Statistics.Resampling                    429          60    0.0    0.0     0.0    0.0
+        jackknifeVariance_.go       Statistics.Resampling                    428          60    0.0    0.0     0.0    0.0
+         jackknifeVariance_.go.q    Statistics.Resampling                    431           6    0.0    0.0     0.0    0.0
+        jackknifeVariance_.brs      Statistics.Resampling                    426           6    0.0    0.0     0.0    0.0
+         pfxSumR                    Statistics.Resampling                    427           0    0.0    0.0     0.0    0.0
+        jackknifeVariance_.bls      Statistics.Resampling                    424           6    0.0    0.0     0.0    0.0
+         pfxSumL                    Statistics.Resampling                    425           0    0.0    0.0     0.0    0.0
+        jackknifeVariance_.ars      Statistics.Resampling                    418           6    0.0    0.0     0.0    0.0
+         jackknifeVariance_.goa     Statistics.Resampling                    422          60    0.0    0.0     0.0    0.0
+         jackknifeVariance_.goa.v   Statistics.Resampling                    421          60    0.0    0.0     0.0    0.0
+         pfxSumR                    Statistics.Resampling                    420           0    0.0    0.0     0.0    0.0
+        jackknifeVariance_.m        Statistics.Resampling                    415           6    0.0    0.0     0.0    0.0
+         mean                       Statistics.Sample                        416           6    0.0    0.0     0.0    0.0
+        jackknifeVariance_.als      Statistics.Resampling                    410           6    0.0    0.0     0.0    0.0
+         jackknifeVariance_.goa     Statistics.Resampling                    414          60    0.0    0.0     0.0    0.0
+         jackknifeVariance_.goa.v   Statistics.Resampling                    413          60    0.0    0.0     0.0    0.0
+         pfxSumL                    Statistics.Resampling                    412           0    0.0    0.0     0.0    0.0
+        jackknifeVariance_.len      Statistics.Resampling                    409           6    0.0    0.0     0.0    0.0
+   bootstrapBCA.e.z1                Statistics.Resampling.Bootstrap          396           6    0.0    0.0     0.0    0.0
+    quantile                        Statistics.Distribution.Normal           397           6    0.0    0.0     0.0    0.0
+     mean                           Statistics.Distribution.Normal           400           6    0.0    0.0     0.0    0.0
+     ndCdfDenom                     Statistics.Distribution.Normal           399           6    0.0    0.0     0.0    0.0
+     quantile.x                     Statistics.Distribution.Normal           398           6    0.0    0.0     0.0    0.0
+   bootstrapBCA.e.n                 Statistics.Resampling.Bootstrap          391          12    0.0    0.0     0.0    0.0
+   bootstrapBCA.e.bias              Statistics.Resampling.Bootstrap          388          12    0.0    0.0     0.0    0.0
+    quantile                        Statistics.Distribution.Normal           392          12    0.0    0.0     0.0    0.0
+     mean                           Statistics.Distribution.Normal           395          12    0.0    0.0     0.0    0.0
+     ndCdfDenom                     Statistics.Distribution.Normal           394          12    0.0    0.0     0.0    0.0
+     quantile.x                     Statistics.Distribution.Normal           393          12    0.0    0.0     0.0    0.0
+    bootstrapBCA.e.bias.probN       Statistics.Resampling.Bootstrap          390          12    0.0    0.0     0.0    0.0
+   bootstrapBCA.e.lo                Statistics.Resampling.Bootstrap          378          12    0.0    0.0     0.0    0.0
+    bootstrapBCA.e.lo.a1            Statistics.Resampling.Bootstrap          401          12    0.0    0.0     0.0    0.0
+    bootstrapBCA.e.lo.b1            Statistics.Resampling.Bootstrap          387          12    0.0    0.0     0.0    0.0
+    bootstrapBCA.e.cumn             Statistics.Resampling.Bootstrap          379           0    0.0    0.0     0.0    0.0
+   bootstrapBCA.e.cumn              Statistics.Resampling.Bootstrap          377          12    0.0    0.0     0.0    0.0
+    cumulative                      Statistics.Distribution.Normal           384          24    0.0    0.0     0.0    0.0
+     ndCdfDenom                     Statistics.Distribution.Normal           447          24    0.0    0.0     0.0    0.0
+     mean                           Statistics.Distribution.Normal           385          24    0.0    0.0     0.0    0.0
+   bootstrapBCA.e.ni                Statistics.Resampling.Bootstrap          376          12    0.0    0.0     0.0    0.0
+   bootstrapBCA.e.pt                Statistics.Resampling.Bootstrap          373          12    0.0    0.0     0.0    0.0
+    mean                            Statistics.Sample                        375          12    0.0    0.0     0.0    0.0
+    estimate                        Statistics.Resampling                    374          12    0.0    0.0     0.0    0.0
+ estPoint                           Statistics.Resampling.Bootstrap          370          24    0.0    0.0     0.0    0.0
+ withSystemRandom                   System.Random.MWC                        345           6    0.0    0.0    69.5   58.2
+  resample                          Statistics.Resampling                    354           6    1.6    0.7    69.5   58.2
+   resample.ests'                   Statistics.Resampling                    366           6    0.0    0.0     0.0    0.0
+    estimate                        Statistics.Resampling                    368          12    0.0    0.0     0.0    0.0
+   resample.\                       Statistics.Resampling                    359           6    0.0    0.0    67.9   57.5
+    resample.\.loop                 Statistics.Resampling                    364      600006    3.4    1.0    67.9   57.5
+     resample.\.loop.\              Statistics.Resampling                    367     1200000    1.3    0.4     1.7    0.4
+      mean                          Statistics.Sample                        369     1200000    0.4    0.0     0.4    0.0
+     uniform                        System.Random.MWC                        365     6000000   62.8   56.1    62.8   56.1
+    uniform                         System.Random.MWC                        360           6    0.0    0.0     0.0    0.0
+   resample.ixs                     Statistics.Resampling                    355           6    0.0    0.0     0.0    0.0
+    resample.ixs.q                  Statistics.Resampling                    358           6    0.0    0.0     0.0    0.0
+    resample.ixs.(...)              Statistics.Resampling                    357           6    0.0    0.0     0.0    0.0
+    resample.ixs.r                  Statistics.Resampling                    356           6    0.0    0.0     0.0    0.0
+  acquireSeedSystem                 System.Random.MWC                        347           0    0.0    0.0     0.0    0.0
+   acquireSeedSystem.\              System.Random.MWC                        349           6    0.0    0.0     0.0    0.0
+    acquireSeedSystem.\.\           System.Random.MWC                        351           6    0.0    0.0     0.0    0.0
+ mean                               Statistics.Sample                        344           2    0.0    0.0     0.0    0.0
+ CAF                                Main                                     342           0    0.0    0.0     0.0    0.0
+ CAF                                Criterion.Main                           340           0    0.0    0.0     0.0    0.0
+ CAF                                Criterion.Internal                       338           0    0.0    0.0     0.0    0.0
+ CAF                                Criterion.Analysis                       337           0    0.0    0.0     0.0    0.0
+ CAF                                Criterion.Environment                    335           0    0.0    0.0     0.0    0.0
+ CAF                                Criterion.IO                             334           0    0.0    0.0     0.0    0.0
+ CAF                                Criterion.Measurement                    332           0    0.0    0.0     0.0    0.0
+ CAF                                Statistics.Resampling                    327           0    0.0    0.0     0.0    0.0
+  pfxSumR                           Statistics.Resampling                    419           1    0.0    0.0     0.0    0.0
+  pfxSumL                           Statistics.Resampling                    411           1    0.0    0.0     0.0    0.0
+  jackknifeVarianceUnb              Statistics.Resampling                    406           1    0.0    0.0     0.0    0.0
+  jackknifeStdDev                   Statistics.Resampling                    404           1    0.0    0.0     0.0    0.0
+ CAF                                Statistics.Resampling.Bootstrap          326           0    0.0    0.0     0.0    0.0
+  get                               Statistics.Resampling.Bootstrap          462           1    0.0    0.0     0.0    0.0
+ CAF                                Statistics.Distribution.Normal           321           0    0.0    0.0     0.0    0.0
+  quantile                          Statistics.Distribution.Normal           389           1    0.0    0.0     0.0    0.0
+  standard                          Statistics.Distribution.Normal           386           1    0.0    0.0     0.0    0.0
+  cumulative                        Statistics.Distribution.Normal           383           1    0.0    0.0     0.0    0.0
+ CAF                                Control.Monad.Par.Scheds.TraceInternal   313           0    0.0    0.0     0.0    0.0
+ CAF                                System.Random.MWC                        309           0    0.0    0.0     0.0    0.0
+  coff                              System.Random.MWC                        353           1    0.0    0.0     0.0    0.0
+  ioff                              System.Random.MWC                        352           1    0.0    0.0     0.0    0.0
+  acquireSeedSystem                 System.Random.MWC                        346           1    0.0    0.0     0.0    0.0
+   acquireSeedSystem.random         System.Random.MWC                        350           1    0.0    0.0     0.0    0.0
+   acquireSeedSystem.nbytes         System.Random.MWC                        348           1    0.0    0.0     0.0    0.0
+ CAF                                System.Directory                         245           0    0.0    0.0     0.0    0.0
+ CAF                                GHC.Float                                231           0    0.0    0.0     0.0    0.0
+ CAF                                GHC.IO.Encoding                          229           0    0.0    0.0     0.0    0.0
+ CAF                                System.IO                                217           0    0.0    0.0     0.0    0.0
+ CAF                                System.Posix.Internals                   216           0    0.0    0.0     0.0    0.0
+ CAF                                GHC.Conc.Signal                          213           0    0.0    0.0     0.0    0.0
+ CAF                                GHC.Conc.Sync                            212           0    0.0    0.0     0.0    0.0
+ CAF                                GHC.IO.Encoding.Iconv                    209           0    0.0    0.0     0.0    0.0
+ CAF                                GHC.IO.Handle.FD                         207           0    0.0    0.0     0.0    0.0
+ CAF                                Text.Read.Lex                            197           0    0.0    0.0     0.0    0.0
+ CAF                                GHC.Event.Internal                       196           0    0.0    0.0     0.0    0.0
+ CAF                                GHC.Event.Thread                         195           0    0.0    0.0     0.0    0.0
+ CAF                                GHC.IO.FD                                191           0    0.0    0.0     0.0    0.0
+ CAF                                GHC.Event.Control                        189           0    0.0    0.0     0.0    0.0
+ CAF                                GHC.Event.EPoll                          183           0    0.0    0.0     0.0    0.0
+ CAF                                GHC.Integer.Logarithms.Internals         179           0    0.0    0.0     0.0    0.0
+  withSystemRandom                  System.Random.MWC                        361           0    0.0    0.0     0.0    0.0
+   acquireSeedSystem                System.Random.MWC                        362           0    0.0    0.0     0.0    0.0
+    acquireSeedSystem.\             System.Random.MWC                        363           0    0.0    0.0     0.0    0.0

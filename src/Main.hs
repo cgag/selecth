@@ -56,10 +56,8 @@ matches :: String -> [String] -> [String]
 matches qry chs = take choicesToShow 
                   $ map fst 
                   $ filter (\(_,cScore) -> cScore > 0) 
-                  $ sortBy (flip compare `on` snd) scoredChoices
-  where 
-      scoredChoices =  map (\choice -> (choice, score qry choice)) chs
-                       {-`using` parListChunk 10000 rdeepseq-}
+                  $ sortBy (flip compare `on` snd) 
+                  $ scoreAll qry chs 
 
 -- Seach -> (QueryString, renderedLines)
 render :: Search -> RenderedSearch
@@ -122,7 +120,7 @@ main = do
     initialChoices <- liftM lines getContents
 
     -- create room for choices and query line
-    replicateM_ (choicesToShow) $ hPutStr tty "\n"
+    replicateM_ choicesToShow $ hPutStr tty "\n"
     hCursorUp tty (choicesToShow + 1)
 
     let initSearch = Search { query="", choices=initialChoices, selection=0 }
