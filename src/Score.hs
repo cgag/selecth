@@ -4,6 +4,8 @@ import Data.Char
 import Data.List
 
 -- TODO: test this properly
+-- TODO: matchLength searches for first char anywhere in string,
+-- it should return 0 if first char isn't correct, otherwise find endMatch
 matchLength :: String -> String -> Int
 matchLength [] _  =  1
 matchLength _ []  =  0
@@ -34,12 +36,12 @@ minMatchLength query@(q:_) choice =
      then 0
      else minimum lengths
 
-score :: Fractional n => String -> String -> n
+score :: String -> String -> Double
 score q choice
     | null q      = 1
     | null choice = 0
     | otherwise = let minLength = minMatchLength (map toLower q) (map toLower choice)
                   in if minLength > 0 
-                     then ((fromIntegral $ length q) / fromIntegral minLength) -- penalize bigger match lengths
+                     then fromIntegral (length q) / fromIntegral minLength -- penalize bigger match lengths
                           / fromIntegral (length choice) -- penalize longer choice strings
                      else 0 

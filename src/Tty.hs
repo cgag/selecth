@@ -42,10 +42,10 @@ unsafeSize h = do
         Just x -> return x
         Nothing -> error "couldn't get window size"
 
-{-clearLines :: Handle -> Int -> IO ()-}
-{-clearLines tty n = do -}
-    {-writeLines tty (replicate n "")-}
-    {-hCursorUp tty n-}
+clearLines :: Handle -> Int -> IO ()
+clearLines tty n = do 
+    writeLines tty (replicate n "")
+    hCursorUp tty n
 
 clearCurrentLine :: Handle -> IO ()
 clearCurrentLine tty = do

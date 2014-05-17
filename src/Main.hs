@@ -2,7 +2,6 @@
 
 import Control.Monad
 {-import Control.Parallel.Strategies-}
-
 {-import Control.Concurrent (threadDelay)-}
 
 import Data.Char
@@ -43,7 +42,6 @@ data Choice = Choice
     }
 
 data Action = NewSearch Search | MakeChoice Choice | Abort | Ignore
-
 
 specialChars :: M.Map Char KeyPress
 specialChars = M.fromList [ ('\ETX', CtrlC)
@@ -91,7 +89,8 @@ writeSelection tty choice = do
     hSetCursorColumn tty 0 
     saneTty
     hPutStr tty "\n"
-    putStrLn (finalMatches choice !! matchIndex choice) -- DANGEROUS 
+    -- !!DANGEROUS , this fails is there are no matches
+    putStrLn (finalMatches choice !! matchIndex choice) 
     exitSuccess
 
 abort :: Handle -> IO ()
@@ -114,7 +113,7 @@ handleInput inputChar search =
         Invisible -> Ignore
 
 choicesToShow :: Int
-choicesToShow = 10
+choicesToShow = 20
 
 main :: IO ()
 main = do
@@ -122,10 +121,14 @@ main = do
     configureTty tty
     initialChoices <- liftM lines getContents
 
+    -- create room for choices and query line
+    replicateM_ (choicesToShow) $ hPutStr tty "\n"
+    hCursorUp tty (choicesToShow + 1)
+
     let initSearch = Search { query="", choices=initialChoices, selection=0 }
     draw tty $ render initSearch
 
-    -- maybe this should return Abort | Quit?, ExitSuccess + sanetty duped
+    -- maybe this should return Abort | Quit?, ExitSuccess + sanetty duplicated
     _ <- eventLoop tty initSearch 
 
     hClose tty 
