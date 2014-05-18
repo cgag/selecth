@@ -23,10 +23,13 @@ import Score
 {-TODO: implement withTty that handles restoring tty state-}
 {-TODO: invert colors on current seleciton-}
 {-TODO: support actually changing selected index-}
+{- TODO: don't call SGR all the time, just do it for the inverted one -}
+
 {-TODO: Tons of time in GC, check for space leaks: -}
   {-http://www.haskell.org/haskellwiki/Performance/GHC#Measuring_performance-}
 
 data KeyPress = CtrlC | Enter | Invisible | Backspace | PlainChar Char
+                | CtrlN | CtrlP
 
 data Search = Search  
     { query :: String
@@ -37,6 +40,7 @@ data RenderedSearch = RenderedSearch
     {
       queryString :: String
     , renderedLines :: [(String, SGR)]
+    , matchCount :: Int
     }
 
 data Choice = Choice 
@@ -49,7 +53,9 @@ data Action = NewSearch Search | MakeChoice Choice | Abort | Ignore
 specialChars :: M.Map Char KeyPress
 specialChars = M.fromList [ ('\ETX', CtrlC)
                           , ('\r',   Enter)
-                          , ('\DEL', Backspace)]
+                          , ('\DEL', Backspace)
+                          , ('\SO',  CtrlN)
+                          , ('\DLE', CtrlP)]
 
 charToKeypress :: Char -> KeyPress
 charToKeypress c = fromMaybe (if isPrint c then PlainChar c else Invisible) 
@@ -65,13 +71,16 @@ matches qry chs = take choicesToShow
 render :: Search -> RenderedSearch
 render (Search {query=q, choices=cs, selection=selIndex}) = 
     let queryLine = "> " <> q
-        matchLines = pad (take choicesToShow $ matches q cs)  
+        matched = take choicesToShow $ matches q cs
+        matchLines = pad matched
         renderedMatchLines = map (\(m, i) -> 
                                     if i == selIndex
                                     then (m, SetSwapForegroundBackground True)
                                     else (m, Reset))
                              $ zip matchLines [0..]
-    in RenderedSearch queryLine $ (queryLine, Reset) : renderedMatchLines
+    in RenderedSearch { queryString = queryLine 
+                      , renderedLines = (queryLine, Reset) : renderedMatchLines
+                      , matchCount = length matched }
   where 
     pad xs = xs ++ replicate (choicesToShow - length xs) " "
 
@@ -105,16 +114,21 @@ abort tty = do
     putStrLn "Quit :(" 
     exitSuccess
 
-handleInput :: Char -> Search -> Action
-handleInput inputChar search = 
+handleInput :: Char -> Search -> Int -> Action
+handleInput inputChar search currMatchCount = 
     case charToKeypress inputChar of
         CtrlC -> Abort
         Enter -> MakeChoice Choice { 
                               finalMatches = matches (query search) (choices search)
                             , matchIndex = selection search
                             } 
-        Backspace   -> NewSearch search { query = dropLast $ query search }
-        PlainChar c -> NewSearch search { query = query search ++ [c] }
+        Backspace   -> NewSearch search { query = dropLast $ query search 
+                                        , selection = 0}
+        PlainChar c -> NewSearch search { query = query search ++ [c] 
+                                        , selection = 0}
+        CtrlN -> NewSearch search { selection = min (selection search + 1) 
+                                                    (currMatchCount - 1)}
+        CtrlP -> NewSearch search { selection = max (selection search - 1) 0 }
         Invisible -> Ignore
 
 choicesToShow :: Int
@@ -134,16 +148,18 @@ main = do
     draw tty $ render initSearch
 
     -- maybe this should return Abort | Quit?, ExitSuccess + sanetty duplicated
-    _ <- eventLoop tty initSearch 
+    _ <- eventLoop tty initSearch 0
 
     hClose tty 
   where
-    eventLoop tty search = do
+    eventLoop :: Handle -> Search -> Int -> IO ()
+    eventLoop tty search currMatchCount = do
       x <- hGetChar tty 
-      case handleInput x search of
+      case handleInput x search currMatchCount of
           Abort -> abort tty
           MakeChoice c -> writeSelection tty c
-          Ignore -> eventLoop tty search
+          Ignore -> eventLoop tty search currMatchCount
           NewSearch newSearch -> do
-              draw tty $ render newSearch
-              eventLoop tty newSearch
+              let rendered = render newSearch
+              draw tty rendered
+              eventLoop tty newSearch (matchCount rendered)
