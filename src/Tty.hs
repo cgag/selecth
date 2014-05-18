@@ -2,12 +2,12 @@
 
 module Tty where
 
-import System.IO 
-import System.Process
-import System.Exit
+import           System.Exit
+import           System.IO
+import           System.Process
 
-import System.Console.ANSI
-import System.Console.Terminal.Size 
+import           System.Console.ANSI
+import           System.Console.Terminal.Size
 
 saneTty :: IO ()
 saneTty = ttyCommand "stty sane"
@@ -15,28 +15,28 @@ saneTty = ttyCommand "stty sane"
 configureTty :: Handle -> IO ()
 configureTty tty = do
     -- LineBuffering by default requires hitting enter to see anything
-    hSetBuffering tty NoBuffering 
+    hSetBuffering tty NoBuffering
     ttyCommand  "stty raw -echo cbreak"
 
 withCursorHidden :: Handle -> IO () -> IO ()
 withCursorHidden tty action = do
-    hHideCursor tty 
+    hHideCursor tty
     action
-    hShowCursor tty 
+    hShowCursor tty
 
 writeLine :: Handle -> Int -> (String, SGR) -> IO ()
 writeLine tty maxLen (line, sgr) = do
 
-    let inverted = case sgr of 
+    let inverted = case sgr of
                       SetSwapForegroundBackground True -> True
                       _ -> False
 
     clearCurrentLine tty maxLen
 
-    if inverted 
+    if inverted
     then withInvertedColors $ writeLine' line
     else writeLine' line
-      
+
   where
       writeLine' :: String -> IO ()
       writeLine' ln = do
@@ -53,11 +53,11 @@ writeLine tty maxLen (line, sgr) = do
 -- affect performance?
 writeLines :: Handle -> [(String, SGR)] -> IO ()
 writeLines tty lns = do
-    (_, w) <- unsafeSize tty 
+    (_, w) <- unsafeSize tty
     mapM_ (writeLine tty w) lns
     hCursorUp tty (length lns)
 
-unsafeSize :: Handle -> IO (Int, Int) 
+unsafeSize :: Handle -> IO (Int, Int)
 unsafeSize tty = do
     mWindow <- hSize tty
     case mWindow of
@@ -72,12 +72,12 @@ clearCurrentLine tty winWidth = do
 
 ttyCommand :: String -> IO ()
 ttyCommand command = do
-    -- this will close the stdin handle, we need to use a second handle to 
+    -- this will close the stdin handle, we need to use a second handle to
     -- /dev/tty
     ttyTmpHandle <- openFile "/dev/tty" ReadMode
     let procSpec = (shell command) { std_in = UseHandle ttyTmpHandle }
     (_, _, _, processHandle) <- createProcess procSpec
-    exitCode <- waitForProcess processHandle 
+    exitCode <- waitForProcess processHandle
     case exitCode of
         ExitFailure code -> error $ "Failed to configure tty (Exit code: "
                                       ++ show code ++ ")"

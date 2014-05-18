@@ -1,46 +1,50 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import Control.Monad
-{-import Control.Parallel.Strategies-}
-{-import Control.Concurrent (threadDelay)-}
+import           Control.Monad
 
-import Data.Char
-import Data.List
-import Data.Maybe
-import qualified Data.Map as M
-import Data.Monoid
-import Data.Function (on)
+import           Data.Char           (isPrint)
+import           Data.Function       (on)
+import           Data.List           (sortBy)
+import qualified Data.Map            as M
+import           Data.Maybe          (fromMaybe)
+import           Data.Monoid         ((<>))
 
-import System.IO 
-import System.Exit
+import           System.Exit         (exitSuccess)
+import           System.IO           (Handle, IOMode (..), hClose, hGetChar,
+                                      hPutStr, openFile)
 
-import System.Console.ANSI
+import           System.Console.ANSI
 
-import Tty
-import Score
+import           Score
+import           Tty
 
+{-TODO: shouldn't be able to make a choice on an empty list-}
+  -- what should happen?  Nothing?  Just quit?
+{-TODO: handle CtrlC properly -}
 {-TODO: implement withTty that handles restoring tty state-}
 {-TODO: getting unweildy passing around currMatchCount and choicesToShow-}
 {-TODO: Tons of time in GC, check for space leaks: -}
   {-http://www.haskell.org/haskellwiki/Performance/GHC#Measuring_performance-}
 
-data KeyPress = CtrlC | CtrlN | CtrlP | Enter 
-                | Invisible | Backspace | PlainChar Char 
+{-TDOO:  Do this refactor: -- "...return Abort | Quit?, sanetty duplicated " -}
 
-data Search = Search  
-    { query :: String
-    , choices :: [String]
+data KeyPress = CtrlC | CtrlN | CtrlP | Enter
+                | Invisible | Backspace | PlainChar Char
+
+data Search = Search
+    { query     :: String
+    , choices   :: [String]
     , selection :: Int } deriving Show
 
-data RenderedSearch = RenderedSearch 
-    { queryString :: String
+data RenderedSearch = RenderedSearch
+    { queryString   :: String
     , renderedLines :: [(String, SGR)]
-    , matchCount :: Int
+    , matchCount    :: Int
     }
 
-data Choice = Choice 
+data Choice = Choice
     { finalMatches :: [String]
-    , matchIndex :: Int
+    , matchIndex   :: Int
     }
 
 data Action = NewSearch Search | MakeChoice Choice | Abort | Ignore
@@ -53,34 +57,34 @@ specialChars = M.fromList [ ('\ETX', CtrlC)
                           , ('\DLE', CtrlP)]
 
 charToKeypress :: Char -> KeyPress
-charToKeypress c = fromMaybe (if isPrint c then PlainChar c else Invisible) 
+charToKeypress c = fromMaybe (if isPrint c then PlainChar c else Invisible)
                              (M.lookup c specialChars)
 
 matches :: String -> [String] -> [String]
-matches qry chs = map fst 
-                  $ filter (\(_,cScore) -> cScore > 0) 
-                  $ sortBy (flip compare `on` snd) 
-                  $ scoreAll qry chs 
+matches qry chs = map fst
+                  $ filter (\(_,cScore) -> cScore > 0)
+                  $ sortBy (flip compare `on` snd)
+                  $ scoreAll qry chs
 
 render :: Search -> Int -> RenderedSearch
-render (Search {query=q, choices=cs, selection=selIndex}) choicesToShow = 
+render (Search {query=q, choices=cs, selection=selIndex}) choicesToShow =
     let queryLine = "> " <> q
         matched = take choicesToShow $ matches q cs
         matchLines = pad matched
-        renderedMatchLines = map (\(m, i) -> 
+        renderedMatchLines = map (\(m, i) ->
                                     if i == selIndex
                                     then (m, SetSwapForegroundBackground True)
                                     else (m, Reset))
                              $ zip matchLines [0..]
-    in RenderedSearch { queryString = queryLine 
+    in RenderedSearch { queryString = queryLine
                       , renderedLines = (queryLine, Reset) : renderedMatchLines
                       , matchCount = length matched }
-  where 
+  where
     pad xs = xs ++ replicate (choicesToShow - length xs) " "
 
 draw :: Handle -> RenderedSearch -> IO ()
 draw tty rendered = do
-    withCursorHidden tty $ 
+    withCursorHidden tty $
         writeLines tty (renderedLines rendered)
     hSetCursorColumn tty $ length $ queryString rendered
 
@@ -94,34 +98,34 @@ dropLast = reverse . drop 1 . reverse
 writeSelection :: Handle -> Choice -> IO ()
 writeSelection tty choice = do
     hCursorDown tty $ length $ finalMatches choice
-    hSetCursorColumn tty 0 
+    hSetCursorColumn tty 0
     saneTty
     hPutStr tty "\n"
     -- !!DANGEROUS , this fails is there are no matches
-    putStrLn (finalMatches choice !! matchIndex choice) 
+    putStrLn (finalMatches choice !! matchIndex choice)
     exitSuccess
 
 abort :: Handle -> IO ()
 abort tty = do
-    hCursorDown tty 1 
+    hCursorDown tty 1
     saneTty -- duplicated in writeSelection
-    putStrLn "Quit :(" 
+    putStrLn "Quit :("
     exitSuccess
 
 handleInput :: Char -> Search -> Int -> Action
-handleInput inputChar search currMatchCount = 
+handleInput inputChar search currMatchCount =
     case charToKeypress inputChar of
         CtrlC -> Abort
-        Enter -> MakeChoice Choice { 
-                              finalMatches = matches (query search) 
+        Enter -> MakeChoice Choice {
+                              finalMatches = matches (query search)
                                                      (choices search)
                             , matchIndex = selection search
-                            } 
-        Backspace   -> NewSearch search { query = dropLast $ query search 
+                            }
+        Backspace   -> NewSearch search { query = dropLast $ query search
                                         , selection = 0 }
-        PlainChar c -> NewSearch search { query = query search ++ [c] 
+        PlainChar c -> NewSearch search { query = query search ++ [c]
                                         , selection = 0 }
-        CtrlN -> NewSearch search { selection = min (selection search + 1) 
+        CtrlN -> NewSearch search { selection = min (selection search + 1)
                                                     (currMatchCount - 1) }
         CtrlP -> NewSearch search { selection = max (selection search - 1) 0 }
         Invisible -> Ignore
@@ -146,11 +150,11 @@ main = do
     -- maybe this should return Abort | Quit?, ExitSuccess + sanetty duplicated
     _ <- eventLoop tty initSearch 0 choicesToShow
 
-    hClose tty 
+    hClose tty
   where
     eventLoop :: Handle -> Search -> Int -> Int -> IO ()
     eventLoop tty search currMatchCount choicesToShow = do
-      x <- hGetChar tty 
+      x <- hGetChar tty
       case handleInput x search currMatchCount of
           Abort -> abort tty
           MakeChoice c -> writeSelection tty c
