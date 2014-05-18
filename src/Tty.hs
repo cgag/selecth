@@ -19,22 +19,23 @@ configureTty tty = do
     {-hSetSGR tty [SetColor Background Vivid White]-}
     ttyCommand  "stty raw -echo cbreak"
 
-writeLine :: Handle -> (String, SGR)-> IO ()
-writeLine tty (line, sgr) = do
-    hSetSGR tty [sgr]
-    clearCurrentLine tty
-    hPutStr tty line
-    hCursorDown tty 1
-
 withCursorHidden :: Handle -> IO () -> IO ()
 withCursorHidden tty action = do
     hHideCursor tty 
     action
     hShowCursor tty 
 
+writeLine :: Handle -> Int -> (String, SGR) -> IO ()
+writeLine tty maxLen (line, sgr) = do
+    hSetSGR tty [sgr]
+    clearCurrentLine tty maxLen
+    hPutStr tty (take maxLen line)
+    hCursorDown tty 1
+
 writeLines :: Handle -> [(String, SGR)] -> IO ()
 writeLines tty lns = do
-    mapM_ (writeLine tty) lns
+    Window _ w <- unsafeSize tty 
+    mapM_ (writeLine tty w) lns
     hCursorUp tty (length lns)
 
 unsafeSize :: (Integral n) => Handle -> IO (Window n)
@@ -44,11 +45,10 @@ unsafeSize h = do
         Just x -> return x
         Nothing -> error "couldn't get window size"
 
-clearCurrentLine :: Handle -> IO ()
-clearCurrentLine tty = do
-    Window _ w <- unsafeSize tty 
+clearCurrentLine :: Handle -> Int -> IO ()
+clearCurrentLine tty winWidth = do
     hSetCursorColumn tty 0
-    hPutStr tty $ replicate w ' '
+    hPutStr tty $ replicate winWidth ' '
     hSetCursorColumn tty 0
 
 ttyCommand :: String -> IO ()
