@@ -16,7 +16,6 @@ configureTty :: Handle -> IO ()
 configureTty tty = do
     -- LineBuffering by default requires hitting enter to see anything
     hSetBuffering tty NoBuffering 
-    {-hSetSGR tty [SetColor Background Vivid White]-}
     ttyCommand  "stty raw -echo cbreak"
 
 withCursorHidden :: Handle -> IO () -> IO ()
@@ -32,17 +31,19 @@ writeLine tty maxLen (line, sgr) = do
     hPutStr tty (take maxLen line)
     hCursorDown tty 1
 
+-- TODO: resizing is nice, but how does calling size repeatedly
+-- affect performance?
 writeLines :: Handle -> [(String, SGR)] -> IO ()
 writeLines tty lns = do
-    Window _ w <- unsafeSize tty 
+    (_, w) <- unsafeSize tty 
     mapM_ (writeLine tty w) lns
     hCursorUp tty (length lns)
 
-unsafeSize :: (Integral n) => Handle -> IO (Window n)
-unsafeSize h = do
-    mWindow <- hSize h 
+unsafeSize :: Handle -> IO (Int, Int) 
+unsafeSize tty = do
+    mWindow <- hSize tty
     case mWindow of
-        Just x -> return x
+        Just (Window h w) -> return (h, w)
         Nothing -> error "couldn't get window size"
 
 clearCurrentLine :: Handle -> Int -> IO ()
