@@ -41,3 +41,4 @@ score q choice
 scoreAll :: String -> [String] -> [(String, Double)]
 scoreAll query choices = map (\choice -> (choice, score (map toLower query) choice)) choices
                          `using` parListChunk 1000 rdeepseq
+

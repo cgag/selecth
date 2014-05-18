@@ -8,8 +8,9 @@ import           Data.List           (sortBy)
 import qualified Data.Map            as M
 import           Data.Maybe          (fromMaybe)
 import           Data.Monoid         ((<>))
+import           Safe (atMay)
 
-import           System.Exit         (exitSuccess)
+import           System.Exit         (exitSuccess, exitFailure)
 import           System.IO           (Handle, IOMode (..), hClose, hGetChar,
                                       hPutStr, openFile)
 
@@ -18,8 +19,6 @@ import           System.Console.ANSI
 import           Score
 import           Tty
 
-{-TODO: shouldn't be able to make a choice on an empty list-}
-  -- what should happen?  Nothing?  Just quit?
 {-TODO: handle CtrlC properly -}
 {-TODO: implement withTty that handles restoring tty state-}
 {-TODO: getting unweildy passing around currMatchCount and choicesToShow-}
@@ -101,9 +100,9 @@ writeSelection tty choice = do
     hSetCursorColumn tty 0
     saneTty
     hPutStr tty "\n"
-    -- !!DANGEROUS , this fails is there are no matches
-    putStrLn (finalMatches choice !! matchIndex choice)
-    exitSuccess
+    case finalMatches choice `atMay` matchIndex choice of
+        Just match -> putStrLn match >> exitSuccess
+        Nothing -> exitFailure
 
 abort :: Handle -> IO ()
 abort tty = do
@@ -141,7 +140,7 @@ main = do
     let choicesToShow = min 20 (winHeight - 1)
 
     -- create room for choices and query line
-    replicateM_ choicesToShow $ hPutStr tty "\n"
+    replicateM_ (choicesToShow + 1) $ hPutStr tty "\n"
     hCursorUp tty (choicesToShow + 1)
 
     let initSearch = Search { query="", choices=initialChoices, selection=0 }
