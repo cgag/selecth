@@ -26,10 +26,28 @@ withCursorHidden tty action = do
 
 writeLine :: Handle -> Int -> (String, SGR) -> IO ()
 writeLine tty maxLen (line, sgr) = do
-    hSetSGR tty [sgr]
+
+    let inverted = case sgr of 
+                      SetSwapForegroundBackground True -> True
+                      _ -> False
+
     clearCurrentLine tty maxLen
-    hPutStr tty (take maxLen line)
-    hCursorDown tty 1
+
+    if inverted 
+    then withInvertedColors $ writeLine' line
+    else writeLine' line
+      
+  where
+      writeLine' :: String -> IO ()
+      writeLine' ln = do
+          hPutStr tty (take maxLen ln)
+          hCursorDown tty 1
+
+      withInvertedColors :: IO () -> IO ()
+      withInvertedColors action = do
+          hSetSGR tty [sgr]
+          action
+          hSetSGR tty [Reset]
 
 -- TODO: resizing is nice, but how does calling size repeatedly
 -- affect performance?

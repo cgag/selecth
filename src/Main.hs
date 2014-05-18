@@ -19,12 +19,8 @@ import System.Console.ANSI
 import Tty
 import Score
 
-{-TODO: need to be sure to not draw off the edge of the scree-}
 {-TODO: implement withTty that handles restoring tty state-}
-{-TODO: invert colors on current seleciton-}
-{-TODO: support actually changing selected index-}
-{- TODO: don't call SGR all the time, just do it for the inverted one -}
-
+{-TODO: getting unweildy passing around currMatchCount and choicesToShow-}
 {-TODO: Tons of time in GC, check for space leaks: -}
   {-http://www.haskell.org/haskellwiki/Performance/GHC#Measuring_performance-}
 
