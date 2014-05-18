@@ -11,8 +11,6 @@ import qualified Data.Map as M
 import Data.Monoid
 import Data.Function (on)
 
--- Try with just strings, benchmark, then try with Text?  {-import qualified Data.Text as T-}
-
 import System.IO 
 import System.Exit
 
@@ -21,7 +19,12 @@ import System.Console.ANSI
 import Tty
 import Score
 
+{-TODO: need to be sure to not draw off the edge of the scree-}
 {-TODO: implement withTty that handles restoring tty state-}
+{-TODO: invert colors on current seleciton-}
+{-TODO: support actually changing selected index-}
+{-TODO: Tons of time in GC, check for space leaks: -}
+  {-http://www.haskell.org/haskellwiki/Performance/GHC#Measuring_performance-}
 
 data KeyPress = CtrlC | Enter | Invisible | Backspace | PlainChar Char
 
@@ -33,7 +36,7 @@ data Search = Search
 data RenderedSearch = RenderedSearch 
     {
       queryString :: String
-    , renderedLines :: [String]
+    , renderedLines :: [(String, SGR)]
     }
 
 data Choice = Choice 
@@ -59,12 +62,16 @@ matches qry chs = take choicesToShow
                   $ sortBy (flip compare `on` snd) 
                   $ scoreAll qry chs 
 
--- Seach -> (QueryString, renderedLines)
 render :: Search -> RenderedSearch
-render (Search {query=q, choices=cs}) = 
+render (Search {query=q, choices=cs, selection=selIndex}) = 
     let queryLine = "> " <> q
         matchLines = pad (take choicesToShow $ matches q cs)  
-    in RenderedSearch queryLine $ queryLine : matchLines
+        renderedMatchLines = map (\(m, i) -> 
+                                    if i == selIndex
+                                    then (m, SetSwapForegroundBackground True)
+                                    else (m, Reset))
+                             $ zip matchLines [0..]
+    in RenderedSearch queryLine $ (queryLine, Reset) : renderedMatchLines
   where 
     pad xs = xs ++ replicate (choicesToShow - length xs) " "
 

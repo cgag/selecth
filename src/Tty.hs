@@ -1,3 +1,5 @@
+{-# LANGUAGE TupleSections #-}
+
 module Tty where
 
 import System.IO 
@@ -17,8 +19,9 @@ configureTty tty = do
     {-hSetSGR tty [SetColor Background Vivid White]-}
     ttyCommand  "stty raw -echo cbreak"
 
-writeLine :: Handle -> String -> IO ()
-writeLine tty line = do
+writeLine :: Handle -> (String, SGR)-> IO ()
+writeLine tty (line, sgr) = do
+    hSetSGR tty [sgr]
     clearCurrentLine tty
     hPutStr tty line
     hCursorDown tty 1
@@ -29,11 +32,10 @@ withCursorHidden tty action = do
     action
     hShowCursor tty 
 
-writeLines :: Handle -> [String] -> IO ()
+writeLines :: Handle -> [(String, SGR)] -> IO ()
 writeLines tty lns = do
     mapM_ (writeLine tty) lns
     hCursorUp tty (length lns)
-
 
 unsafeSize :: (Integral n) => Handle -> IO (Window n)
 unsafeSize h = do
@@ -41,11 +43,6 @@ unsafeSize h = do
     case mWindow of
         Just x -> return x
         Nothing -> error "couldn't get window size"
-
-clearLines :: Handle -> Int -> IO ()
-clearLines tty n = do 
-    writeLines tty (replicate n "")
-    hCursorUp tty n
 
 clearCurrentLine :: Handle -> IO ()
 clearCurrentLine tty = do
