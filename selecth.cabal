@@ -18,7 +18,7 @@ cabal-version:       >=1.10
 
 executable selecth
  ---rtsopts  -fprof-auto
-  ghc-options:       -threaded -O2 -Wall
+  ghc-options:       -threaded -O2  "-with-rtsopts = -N -H2g -k"
   main-is:             Main.hs
   -- other-modules:       
   -- other-extensions:    
@@ -37,7 +37,7 @@ executable selecth
 
 -- this is kind of lame, better way?
 executable benchmark
-  ghc-options:       -threaded -O2
+  ghc-options:       -threaded -O2  "-with-rtsopts = -N -H2g"
   main-is:           Benchmark.hs
   -- other-modules:       
   -- other-extensions:    
