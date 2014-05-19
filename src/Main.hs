@@ -19,8 +19,8 @@ import           System.Console.ANSI
 import           Score
 import           Tty
 
-{-TODO: implement withTty that handles restoring tty state-}
-{-TODO: getting unweildy passing around currMatchCount and choicesToShow-}
+{- TODO: implement withTty that handles restoring tty state -}
+{- TODO: getting unweildy passing around currMatchCount and choicesToShow-}
 
 {-TODO: Try using threadscope-}
 {-TODO: Tons of time in GC, check for space leaks: -}
@@ -75,7 +75,7 @@ render (Search {query=q, choices=cs, selection=selIndex}) choicesToShow =
         matched = take choicesToShow $ matches q cs
         matchLines = pad matched
         renderedMatchLines = map (\(m, i) ->
-                                    if i == selIndex && m /= " "
+                                    if i == selIndex && m /= " " -- don't highlight pad line 
                                     then (m, SetSwapForegroundBackground True)
                                     else (m, Reset))
                              $ zip matchLines [0..]
@@ -105,11 +105,6 @@ writeSelection tty choice choicesToShow = do
     case finalMatches choice `atMay` matchIndex choice of
         Just match -> putStrLn match >> exitSuccess
         Nothing -> exitFailure
-
-abort :: Handle -> IO ()
-abort tty = do
-    hSetCursorColumn tty 0
-    exitFailure
 
 handleInput :: Char -> Search -> Int -> Action
 handleInput inputChar search currMatchCount =
@@ -151,9 +146,8 @@ main = do
     draw tty $ render initSearch choicesToShow
 
     -- maybe this should return Abort | Quit?, ExitSuccess + sanetty duplicated
-    _ <- eventLoop tty initSearch 0 choicesToShow
+    eventLoop tty initSearch 0 choicesToShow
 
-    hClose tty
   where
     eventLoop :: Handle -> Search -> Int -> Int -> IO ()
     eventLoop tty search currMatchCount choicesToShow = do
@@ -163,8 +157,9 @@ main = do
             hSetCursorColumn tty 0
             saneTty
             case eaction of 
-                Abort -> abort tty
+                Abort -> exitFailure
                 MakeChoice c -> writeSelection tty c choicesToShow
+            hClose tty
           SearchAction saction -> do
               let newSearch = case saction of 
                                   Ignore -> search

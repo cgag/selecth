@@ -1,0 +1,879 @@
+	Sun May 18 17:58 2014 Time and Allocation Profiling Report  (Final)
+
+	   benchmark +RTS -pa -N4 -RTS -s 20
+
+	total time  =       33.20 secs   (132812 ticks @ 1000 us, 4 processors)
+	total alloc = 37,699,604,280 bytes  (excludes profiling overheads)
+
+COST CENTRE                     MODULE                                  %time %alloc  ticks     bytes
+
+uniform                         System.Random.MWC                        32.6   40.1  43336 15133740464
+IDLE                            IDLE                                     20.8    0.0  27646         0
+GC                              GC                                       17.8    0.0  23675      8896
+SYSTEM                          SYSTEM                                   10.3    0.1  13624  20885792
+main                            Main                                      5.1   32.8   6770 12367630600
+minMatchLength.matchLenghts     Score                                     4.1    7.0   5407 2655567576
+score.minLength                 Score                                     3.4    6.6   4499 2495062984
+resample.\.loop                 Statistics.Resampling                     1.3    0.6   1757 241108432
+scoreAll                        Score                                     1.2    2.1   1577 808209416
+main.benchWords                 Main                                      0.7    5.2    910 1952745096
+minMatchLength.endMatch         Score                                     0.6    3.8    739 1444660040
+OVERHEAD_of                     PROFILING                                 0.5    0.0    698         0
+scoreAll.\                      Score                                     0.5    1.1    647 422435600
+minMatchLength                  Score                                     0.4    0.0    497        96
+resample.\.loop.\               Statistics.Resampling                     0.3    0.3    398  99968128
+resample                        Statistics.Resampling                     0.2    0.0    235  11336992
+score                           Score                                     0.1    0.0    189         0
+mean                            Statistics.Sample                         0.1    0.0    125         0
+minMatchLength.matchLenghts.\   Score                                     0.0    0.1     50  37249440
+normalizeScore                  Score                                     0.0    0.0     15         0
+uniform                         System.Random.MWC                         0.0    0.0      6   7622544
+bootstrapBCA.e.bias.probN       Statistics.Resampling.Bootstrap           0.0    0.0      6         0
+acquireSeedSystem.\.\           System.Random.MWC                         0.0    0.0      3      4128
+MAIN                            MAIN                                      0.0    0.0      2     73896
+acquireSeedSystem.\             System.Random.MWC                         0.0    0.0      1    211552
+PINNED                          SYSTEM                                    0.0    0.0      0         0
+DONT_CARE                       MAIN                                      0.0    0.0      0         0
+CAF                             GHC.Integer.Type                          0.0    0.0      0         0
+CAF                             GHC.Integer.Logarithms.Internals          0.0    0.0      0       304
+CAF                             GHC.IO.Encoding.Failure                   0.0    0.0      0         0
+CAF                             GHC.IO.Encoding.UTF32                     0.0    0.0      0         0
+CAF                             GHC.Event.TimerManager                    0.0    0.0      0         0
+CAF                             GHC.Event.PSQ                             0.0    0.0      0         0
+CAF                             GHC.Event.Control                         0.0    0.0      0         0
+CAF                             GHC.Event.Array                           0.0    0.0      0         0
+CAF                             GHC.IO.Handle.Types                       0.0    0.0      0         0
+CAF                             GHC.IO.Encoding.UTF16                     0.0    0.0      0         0
+CAF                             GHC.IO.Encoding.Iconv                     0.0    0.0      0       232
+CAF                             GHC.Float.ConversionUtils                 0.0    0.0      0         0
+CAF                             Foreign.Marshal.Alloc                     0.0    0.0      0         0
+CAF                             GHC.Event.Poll                            0.0    0.0      0         0
+CAF                             GHC.Event.Manager                         0.0    0.0      0         0
+CAF                             Text.Read.Lex                             0.0    0.0      0      2120
+CAF                             GHC.TopHandler                            0.0    0.0      0         0
+CAF                             GHC.Int                                   0.0    0.0      0         0
+CAF                             GHC.IO.FD                                 0.0    0.0      0        16
+CAF                             GHC.Arr                                   0.0    0.0      0         0
+CAF                             Data.Char                                 0.0    0.0      0         0
+CAF                             GHC.Event.Thread                          0.0    0.0      0      1920
+CAF                             GHC.Event.Internal                        0.0    0.0      0         0
+CAF                             GHC.Event.EPoll                           0.0    0.0      0         0
+CAF                             Text.Read                                 0.0    0.0      0         0
+CAF                             System.Environment                        0.0    0.0      0         0
+CAF                             System.Console.GetOpt                     0.0    0.0      0         0
+CAF                             GHC.Read                                  0.0    0.0      0         0
+CAF                             GHC.List                                  0.0    0.0      0         0
+CAF                             GHC.IO.Handle.Internals                   0.0    0.0      0         0
+CAF                             GHC.IO.Handle.FD                          0.0    0.0      0     34480
+CAF                             GHC.IO.Encoding.UTF8                      0.0    0.0      0         0
+CAF                             GHC.IO                                    0.0    0.0      0         0
+CAF                             GHC.ForeignPtr                            0.0    0.0      0         0
+CAF                             GHC.Float                                 0.0    0.0      0     46920
+CAF                             GHC.Exception                             0.0    0.0      0         0
+CAF                             GHC.Enum                                  0.0    0.0      0         0
+CAF                             GHC.Conc.Signal                           0.0    0.0      0       656
+CAF                             Data.List                                 0.0    0.0      0         0
+CAF                             Data.Data                                 0.0    0.0      0         0
+CAF                             Text.Printf                               0.0    0.0      0      2384
+CAF                             Text.ParserCombinators.ReadP              0.0    0.0      0         0
+CAF                             System.Posix.Internals                    0.0    0.0      0         0
+CAF                             System.IO                                 0.0    0.0      0        16
+CAF                             System.Exit                               0.0    0.0      0         0
+CAF                             System.CPUTime                            0.0    0.0      0         0
+CAF                             GHC.Show                                  0.0    0.0      0         0
+CAF                             GHC.Real                                  0.0    0.0      0         0
+CAF                             GHC.IO.Handle.Text                        0.0    0.0      0         0
+CAF                             GHC.IO.Handle                             0.0    0.0      0         0
+CAF                             GHC.IO.Exception                          0.0    0.0      0         0
+CAF                             GHC.IO.Encoding                           0.0    0.0      0      3808
+CAF                             GHC.Err                                   0.0    0.0      0         0
+CAF                             GHC.Conc.Sync                             0.0    0.0      0        16
+CAF                             Data.Typeable.Internal                    0.0    0.0      0         0
+CAF                             Data.Monoid                               0.0    0.0      0         0
+CAF                             Data.Maybe                                0.0    0.0      0         0
+CAF                             Control.Exception.Base                    0.0    0.0      0         0
+CAF                             Data.ByteString                           0.0    0.0      0         0
+CAF                             Data.ByteString.Lazy.Internal             0.0    0.0      0         0
+CAF                             Data.ByteString.Lazy                      0.0    0.0      0         0
+CAF                             Data.ByteString.Internal                  0.0    0.0      0         0
+CAF                             Data.Time.Clock.CTimeval                  0.0    0.0      0         0
+CAF                             System.Posix.Directory.Common             0.0    0.0      0         0
+CAF                             System.Posix.Directory                    0.0    0.0      0         0
+CAF                             System.Posix.Files                        0.0    0.0      0         0
+CAF                             Data.Set.Base                             0.0    0.0      0         0
+CAF                             Data.Map.Base                             0.0    0.0      0         0
+CAF                             System.Directory                          0.0    0.0      0       448
+CAF                             Data.DList                                0.0    0.0      0         0
+CAF                             System.FilePath.Glob.Utils                0.0    0.0      0         0
+CAF                             System.FilePath.Glob.Match                0.0    0.0      0         0
+CAF                             System.FilePath.Glob.Base                 0.0    0.0      0         0
+CAF                             Data.Text.Internal.Read                   0.0    0.0      0         0
+CAF                             Data.Text.Internal.Lazy.Search            0.0    0.0      0         0
+CAF                             Data.Text.Internal.Lazy.Encoding.Fusion   0.0    0.0      0         0
+CAF                             Data.Text.Unsafe                          0.0    0.0      0         0
+CAF                             Data.Text.Read                            0.0    0.0      0         0
+CAF                             Data.Text.Lazy.IO                         0.0    0.0      0         0
+CAF                             Data.Text.Lazy.Encoding                   0.0    0.0      0         0
+CAF                             Data.Text.Lazy                            0.0    0.0      0         0
+unstreamChunks/inner            Data.Text.Internal.Lazy.Fusion            0.0    0.0      0         0
+unstreamChunks/resize           Data.Text.Internal.Lazy.Fusion            0.0    0.0      0         0
+unstreamChunks/outer            Data.Text.Internal.Lazy.Fusion            0.0    0.0      0         0
+CAF                             Data.Text.Internal.Lazy.Fusion            0.0    0.0      0         0
+CAF                             Data.Text.Internal.Lazy                   0.0    0.0      0         0
+otherwise                       Data.Text.Internal.IO                     0.0    0.0      0         0
+readTextDevice                  Data.Text.Internal.IO                     0.0    0.0      0         0
+CAF                             Data.Text.Internal.IO                     0.0    0.0      0         0
+CAF                             Data.Text.Internal.Fusion.Types           0.0    0.0      0         0
+CAF                             Data.Text.Internal.Fusion.Size            0.0    0.0      0         0
+CAF                             Data.Text.Internal.Fusion.Common          0.0    0.0      0         0
+unstream/resize                 Data.Text.Internal.Fusion                 0.0    0.0      0         0
+reverse/resize                  Data.Text.Internal.Fusion                 0.0    0.0      0         0
+mapAccumL/resize                Data.Text.Internal.Fusion                 0.0    0.0      0         0
+CAF                             Data.Text.Internal.Fusion                 0.0    0.0      0         0
+CAF                             Data.Text.Internal.Functions              0.0    0.0      0         0
+CAF                             Data.Text.Internal.Encoding.Fusion        0.0    0.0      0         0
+CAF                             Data.Text.Internal.Builder                0.0    0.0      0         0
+CAF                             Data.Text.Internal                        0.0    0.0      0         0
+CAF                             Data.Text.IO                              0.0    0.0      0         0
+CAF                             Data.Text.Encoding.Error                  0.0    0.0      0         0
+CAF                             Data.Text.Encoding                        0.0    0.0      0         0
+CAF                             Data.Text.Array                           0.0    0.0      0         0
+CAF                             Data.Text                                 0.0    0.0      0         0
+CAF                             Control.Monad.Reader.Class                0.0    0.0      0         0
+CAF                             Data.Primitive.ByteArray                  0.0    0.0      0         0
+CAF                             Data.Primitive.Array                      0.0    0.0      0         0
+CAF                             Data.Primitive.Types                      0.0    0.0      0         0
+CAF                             Control.Monad.Primitive                   0.0    0.0      0         0
+CAF                             Data.Vector.Generic.New                   0.0    0.0      0         0
+CAF                             Data.Vector.Fusion.Stream                 0.0    0.0      0         0
+CAF                             Data.Vector.Generic                       0.0    0.0      0         0
+CAF                             Data.Vector.Fusion.Stream.Size            0.0    0.0      0         0
+CAF                             Data.Vector                               0.0    0.0      0         0
+CAF                             Data.Vector.Mutable                       0.0    0.0      0         0
+CAF                             Data.Vector.Unboxed                       0.0    0.0      0         0
+CAF                             Data.Vector.Unboxed.Base                  0.0    0.0      0         0
+CAF                             Data.Vector.Storable                      0.0    0.0      0         0
+CAF                             Data.Vector.Storable.Mutable              0.0    0.0      0         0
+CAF                             Data.Vector.Primitive                     0.0    0.0      0         0
+CAF                             Data.Vector.Primitive.Mutable             0.0    0.0      0         0
+CAF                             Data.Vector.Generic.Base                  0.0    0.0      0         0
+CAF                             Data.Vector.Generic.Mutable               0.0    0.0      0         0
+CAF                             Data.Vector.Fusion.Stream.Monadic         0.0    0.0      0         0
+CAF                             Data.Vector.Fusion.Util                   0.0    0.0      0         0
+CAF                             Data.Vector.Internal.Check                0.0    0.0      0         0
+CAF                             Data.Binary.Class                         0.0    0.0      0         0
+CAF                             Data.Binary.Get.Internal                  0.0    0.0      0         0
+CAF                             Text.Hastache.Context                     0.0    0.0      0         0
+CAF                             Text.Hastache                             0.0    0.0      0         0
+ratios                          System.Random.MWC.Distributions           0.0    0.0      0         0
+blocks                          System.Random.MWC.Distributions           0.0    0.0      0         0
+blocks.go                       System.Random.MWC.Distributions           0.0    0.0      0         0
+blocks.go.h                     System.Random.MWC.Distributions           0.0    0.0      0         0
+blocks.v                        System.Random.MWC.Distributions           0.0    0.0      0         0
+blocks.f                        System.Random.MWC.Distributions           0.0    0.0      0         0
+rNorm                           System.Random.MWC.Distributions           0.0    0.0      0         0
+pkgError                        System.Random.MWC.Distributions           0.0    0.0      0         0
+CAF                             System.Random.MWC.Distributions           0.0    0.0      0         0
+uniformR                        System.Random.MWC                         0.0    0.0      0         0
+uniform                         System.Random.MWC                         0.0    0.0      0         0
+uniformR                        System.Random.MWC                         0.0    0.0      0         0
+uniform                         System.Random.MWC                         0.0    0.0      0         0
+uniformR                        System.Random.MWC                         0.0    0.0      0         0
+uniform                         System.Random.MWC                         0.0    0.0      0         0
+uniformR                        System.Random.MWC                         0.0    0.0      0         0
+uniform                         System.Random.MWC                         0.0    0.0      0         0
+uniformR                        System.Random.MWC                         0.0    0.0      0         0
+uniform                         System.Random.MWC                         0.0    0.0      0         0
+uniformR                        System.Random.MWC                         0.0    0.0      0         0
+uniform                         System.Random.MWC                         0.0    0.0      0         0
+uniformR                        System.Random.MWC                         0.0    0.0      0         0
+uniformR                        System.Random.MWC                         0.0    0.0      0         0
+uniform                         System.Random.MWC                         0.0    0.0      0         0
+uniformR                        System.Random.MWC                         0.0    0.0      0         0
+uniform                         System.Random.MWC                         0.0    0.0      0         0
+uniformR                        System.Random.MWC                         0.0    0.0      0         0
+uniformR.\                      System.Random.MWC                         0.0    0.0      0         0
+uniform                         System.Random.MWC                         0.0    0.0      0         0
+uniformR                        System.Random.MWC                         0.0    0.0      0         0
+uniformR.\                      System.Random.MWC                         0.0    0.0      0         0
+uniform                         System.Random.MWC                         0.0    0.0      0         0
+uniformR                        System.Random.MWC                         0.0    0.0      0         0
+uniformR                        System.Random.MWC                         0.0    0.0      0         0
+uniform                         System.Random.MWC                         0.0    0.0      0         0
+uniformR                        System.Random.MWC                         0.0    0.0      0         0
+uniform                         System.Random.MWC                         0.0    0.0      0         0
+uniformR                        System.Random.MWC                         0.0    0.0      0         0
+uniform                         System.Random.MWC                         0.0    0.0      0         0
+uniformR                        System.Random.MWC                         0.0    0.0      0         0
+uniform                         System.Random.MWC                         0.0    0.0      0         0
+showList                        System.Random.MWC                         0.0    0.0      0         0
+showsPrec                       System.Random.MWC                         0.0    0.0      0         0
+/=                              System.Random.MWC                         0.0    0.0      0         0
+==                              System.Random.MWC                         0.0    0.0      0         0
+typeRep#                        System.Random.MWC                         0.0    0.0      0         0
+fromSeed                        System.Random.MWC                         0.0    0.0      0         0
+asGenIO                         System.Random.MWC                         0.0    0.0      0         0
+asGenST                         System.Random.MWC                         0.0    0.0      0         0
+createSystemRandom              System.Random.MWC                         0.0    0.0      0         0
+withSystemRandom                System.Random.MWC                         0.0    0.0      0     84816
+withSystemRandom.\              System.Random.MWC                         0.0    0.0      0         0
+withSystemRandom.warned         System.Random.MWC                         0.0    0.0      0         0
+toSeed                          System.Random.MWC                         0.0    0.0      0         0
+ioff                            System.Random.MWC                         0.0    0.0      0         0
+coff                            System.Random.MWC                         0.0    0.0      0         0
+acquireSeedTime                 System.Random.MWC                         0.0    0.0      0         0
+acquireSeedTime.n               System.Random.MWC                         0.0    0.0      0         0
+acquireSeedSystem               System.Random.MWC                         0.0    0.0      0      6464
+acquireSeedSystem.nbytes        System.Random.MWC                         0.0    0.0      0         0
+acquireSeedSystem.random        System.Random.MWC                         0.0    0.0      0       880
+defaultSeed                     System.Random.MWC                         0.0    0.0      0         0
+CAF                             System.Random.MWC                         0.0    0.0      0        48
+CAF                             Data.Number.Erf                           0.0    0.0      0         0
+CAF                             Numeric.MathFunctions.Constants           0.0    0.0      0         0
+CAF                             Numeric.Sum                               0.0    0.0      0         0
+CAF                             Numeric.SpecFunctions                     0.0    0.0      0         0
+CAF                             Control.Parallel.Strategies               0.0    0.0      0         0
+CAF                             Control.Monad.Par.Scheds.TraceInternal    0.0    0.0      0        16
+CAF                             Data.Vector.Algorithms.Intro              0.0    0.0      0         0
+CAF                             Data.Vector.Algorithms.Optimal            0.0    0.0      0         0
+CAF                             Data.Vector.Binary                        0.0    0.0      0         0
+stdDev                          Statistics.Distribution                   0.0    0.0      0         0
+variance                        Statistics.Distribution                   0.0    0.0      0         0
+variance.x                      Statistics.Distribution                   0.0    0.0      0         0
+maybeStdDev                     Statistics.Distribution                   0.0    0.0      0         0
+maybeVariance                   Statistics.Distribution                   0.0    0.0      0         0
+maybeVariance.x                 Statistics.Distribution                   0.0    0.0      0         0
+logDensity                      Statistics.Distribution                   0.0    0.0      0         0
+density                         Statistics.Distribution                   0.0    0.0      0         0
+logProbability                  Statistics.Distribution                   0.0    0.0      0         0
+probability                     Statistics.Distribution                   0.0    0.0      0         0
+complCumulative                 Statistics.Distribution                   0.0    0.0      0         0
+findRoot                        Statistics.Distribution                   0.0    0.0      0         0
+findRoot.loop                   Statistics.Distribution                   0.0    0.0      0         0
+findRoot.loop.x''               Statistics.Distribution                   0.0    0.0      0         0
+findRoot.loop.dx''              Statistics.Distribution                   0.0    0.0      0         0
+findRoot.loop.(...)             Statistics.Distribution                   0.0    0.0      0         0
+findRoot.loop.(...).y           Statistics.Distribution                   0.0    0.0      0         0
+findRoot.loop.x'                Statistics.Distribution                   0.0    0.0      0         0
+findRoot.loop.dx'               Statistics.Distribution                   0.0    0.0      0         0
+findRoot.loop.(...)             Statistics.Distribution                   0.0    0.0      0         0
+findRoot.loop.hi'               Statistics.Distribution                   0.0    0.0      0         0
+findRoot.loop.lo'               Statistics.Distribution                   0.0    0.0      0         0
+findRoot.loop.(...)             Statistics.Distribution                   0.0    0.0      0         0
+findRoot.loop.err               Statistics.Distribution                   0.0    0.0      0         0
+findRoot.loop.pdf               Statistics.Distribution                   0.0    0.0      0         0
+findRoot.accuracy               Statistics.Distribution                   0.0    0.0      0         0
+findRoot.maxIters               Statistics.Distribution                   0.0    0.0      0         0
+CAF                             Statistics.Distribution                   0.0    0.0      0         0
+within                          Statistics.Function.Comparison            0.0    0.0      0         0
+within.bi                       Statistics.Function.Comparison            0.0    0.0      0         0
+within.ai                       Statistics.Function.Comparison            0.0    0.0      0         0
+within.big                      Statistics.Function.Comparison            0.0    0.0      0         0
+CAF                             Statistics.Function.Comparison            0.0    0.0      0         0
+get                             Statistics.Math.RootFinding               0.0    0.0      0         0
+put                             Statistics.Math.RootFinding               0.0    0.0      0         0
+fmap                            Statistics.Math.RootFinding               0.0    0.0      0         0
+return                          Statistics.Math.RootFinding               0.0    0.0      0         0
+>>=                             Statistics.Math.RootFinding               0.0    0.0      0         0
+mplus                           Statistics.Math.RootFinding               0.0    0.0      0         0
+mzero                           Statistics.Math.RootFinding               0.0    0.0      0         0
+<*>                             Statistics.Math.RootFinding               0.0    0.0      0         0
+pure                            Statistics.Math.RootFinding               0.0    0.0      0         0
+<|>                             Statistics.Math.RootFinding               0.0    0.0      0         0
+empty                           Statistics.Math.RootFinding               0.0    0.0      0         0
+dataCast1                       Statistics.Math.RootFinding               0.0    0.0      0         0
+dataTypeOf                      Statistics.Math.RootFinding               0.0    0.0      0         0
+toConstr                        Statistics.Math.RootFinding               0.0    0.0      0         0
+gunfold                         Statistics.Math.RootFinding               0.0    0.0      0         0
+gfoldl                          Statistics.Math.RootFinding               0.0    0.0      0         0
+showList                        Statistics.Math.RootFinding               0.0    0.0      0         0
+showsPrec                       Statistics.Math.RootFinding               0.0    0.0      0         0
+readListPrec                    Statistics.Math.RootFinding               0.0    0.0      0         0
+readPrec                        Statistics.Math.RootFinding               0.0    0.0      0         0
+readList                        Statistics.Math.RootFinding               0.0    0.0      0         0
+/=                              Statistics.Math.RootFinding               0.0    0.0      0         0
+==                              Statistics.Math.RootFinding               0.0    0.0      0         0
+typeRep#                        Statistics.Math.RootFinding               0.0    0.0      0         0
+$tRoot                          Statistics.Math.RootFinding               0.0    0.0      0         0
+$cNotBracketed                  Statistics.Math.RootFinding               0.0    0.0      0         0
+$cSearchFailed                  Statistics.Math.RootFinding               0.0    0.0      0         0
+$cRoot                          Statistics.Math.RootFinding               0.0    0.0      0         0
+fromRoot                        Statistics.Math.RootFinding               0.0    0.0      0         0
+ridders                         Statistics.Math.RootFinding               0.0    0.0      0         0
+ridders.go                      Statistics.Math.RootFinding               0.0    0.0      0         0
+ridders.go.d                    Statistics.Math.RootFinding               0.0    0.0      0         0
+ridders.go.dm                   Statistics.Math.RootFinding               0.0    0.0      0         0
+CAF                             Statistics.Math.RootFinding               0.0    0.0      0         0
+nextHighestPowerOfTwo           Statistics.Function                       0.0    0.0      0         0
+nextHighestPowerOfTwo._i32      Statistics.Function                       0.0    0.0      0         0
+nextHighestPowerOfTwo.i16       Statistics.Function                       0.0    0.0      0         0
+nextHighestPowerOfTwo.i8        Statistics.Function                       0.0    0.0      0         0
+nextHighestPowerOfTwo.i4        Statistics.Function                       0.0    0.0      0         0
+nextHighestPowerOfTwo.i2        Statistics.Function                       0.0    0.0      0         0
+nextHighestPowerOfTwo.i1        Statistics.Function                       0.0    0.0      0         0
+nextHighestPowerOfTwo.i0        Statistics.Function                       0.0    0.0      0         0
+CAF                             Statistics.Function                       0.0    0.0      0         0
+get                             Statistics.Distribution.Normal            0.0    0.0      0         0
+put                             Statistics.Distribution.Normal            0.0    0.0      0         0
+complCumulative                 Statistics.Distribution.Normal            0.0    0.0      0         0
+cumulative                      Statistics.Distribution.Normal            0.0    0.0      0         0
+logDensity                      Statistics.Distribution.Normal            0.0    0.0      0         0
+quantile                        Statistics.Distribution.Normal            0.0    0.0      0         0
+maybeMean                       Statistics.Distribution.Normal            0.0    0.0      0         0
+mean                            Statistics.Distribution.Normal            0.0    0.0      0         0
+maybeStdDev                     Statistics.Distribution.Normal            0.0    0.0      0         0
+maybeVariance                   Statistics.Distribution.Normal            0.0    0.0      0         0
+stdDev                          Statistics.Distribution.Normal            0.0    0.0      0         0
+entropy                         Statistics.Distribution.Normal            0.0    0.0      0         0
+maybeEntropy                    Statistics.Distribution.Normal            0.0    0.0      0         0
+genContVar                      Statistics.Distribution.Normal            0.0    0.0      0         0
+dataTypeOf                      Statistics.Distribution.Normal            0.0    0.0      0         0
+toConstr                        Statistics.Distribution.Normal            0.0    0.0      0         0
+gunfold                         Statistics.Distribution.Normal            0.0    0.0      0         0
+gfoldl                          Statistics.Distribution.Normal            0.0    0.0      0         0
+showList                        Statistics.Distribution.Normal            0.0    0.0      0         0
+showsPrec                       Statistics.Distribution.Normal            0.0    0.0      0         0
+readListPrec                    Statistics.Distribution.Normal            0.0    0.0      0         0
+readPrec                        Statistics.Distribution.Normal            0.0    0.0      0         0
+readList                        Statistics.Distribution.Normal            0.0    0.0      0         0
+/=                              Statistics.Distribution.Normal            0.0    0.0      0         0
+==                              Statistics.Distribution.Normal            0.0    0.0      0         0
+typeRep#                        Statistics.Distribution.Normal            0.0    0.0      0         0
+ndCdfDenom                      Statistics.Distribution.Normal            0.0    0.0      0         0
+ndPdfDenom                      Statistics.Distribution.Normal            0.0    0.0      0         0
+stdDev                          Statistics.Distribution.Normal            0.0    0.0      0         0
+mean                            Statistics.Distribution.Normal            0.0    0.0      0         0
+$tNormalDistribution            Statistics.Distribution.Normal            0.0    0.0      0         0
+$cND                            Statistics.Distribution.Normal            0.0    0.0      0         0
+standard                        Statistics.Distribution.Normal            0.0    0.0      0        96
+normalFromSample                Statistics.Distribution.Normal            0.0    0.0      0         0
+normalFromSample.v              Statistics.Distribution.Normal            0.0    0.0      0         0
+normalFromSample.m              Statistics.Distribution.Normal            0.0    0.0      0         0
+normalFromSample.(...)          Statistics.Distribution.Normal            0.0    0.0      0         0
+normalDistr                     Statistics.Distribution.Normal            0.0    0.0      0         0
+logDensity                      Statistics.Distribution.Normal            0.0    0.0      0         0
+logDensity.xm                   Statistics.Distribution.Normal            0.0    0.0      0         0
+logDensity.sd                   Statistics.Distribution.Normal            0.0    0.0      0         0
+cumulative                      Statistics.Distribution.Normal            0.0    0.0      0       432
+complCumulative                 Statistics.Distribution.Normal            0.0    0.0      0         0
+quantile                        Statistics.Distribution.Normal            0.0    0.0      0       296
+quantile.x                      Statistics.Distribution.Normal            0.0    0.0      0       672
+quantile.inf                    Statistics.Distribution.Normal            0.0    0.0      0         0
+CAF                             Statistics.Distribution.Normal            0.0    0.0      0         0
+CAF                             Statistics.Types                          0.0    0.0      0         0
+dctWorker                       Statistics.Transform                      0.0    0.0      0         0
+dctWorker.interleaved           Statistics.Transform                      0.0    0.0      0         0
+dctWorker.weights               Statistics.Transform                      0.0    0.0      0         0
+dctWorker.weights.\             Statistics.Transform                      0.0    0.0      0         0
+dctWorker.weights.n             Statistics.Transform                      0.0    0.0      0         0
+dctWorker.len                   Statistics.Transform                      0.0    0.0      0         0
+idctWorker                      Statistics.Transform                      0.0    0.0      0         0
+idctWorker.interleave           Statistics.Transform                      0.0    0.0      0         0
+idctWorker.vals                 Statistics.Transform                      0.0    0.0      0         0
+idctWorker.weights              Statistics.Transform                      0.0    0.0      0         0
+idctWorker.weights.\            Statistics.Transform                      0.0    0.0      0         0
+idctWorker.weights.n            Statistics.Transform                      0.0    0.0      0         0
+idctWorker.len                  Statistics.Transform                      0.0    0.0      0         0
+ifft                            Statistics.Transform                      0.0    0.0      0         0
+fft                             Statistics.Transform                      0.0    0.0      0         0
+mfft                            Statistics.Transform                      0.0    0.0      0         0
+mfft.bitReverse                 Statistics.Transform                      0.0    0.0      0         0
+mfft.bitReverse.inner           Statistics.Transform                      0.0    0.0      0         0
+mfft.stage                      Statistics.Transform                      0.0    0.0      0         0
+mfft.stage.flight               Statistics.Transform                      0.0    0.0      0         0
+mfft.stage.flight.butterfly     Statistics.Transform                      0.0    0.0      0         0
+mfft.stage.flight.butterfly.d   Statistics.Transform                      0.0    0.0      0         0
+mfft.stage.flight.butterfly.i1  Statistics.Transform                      0.0    0.0      0         0
+mfft.m                          Statistics.Transform                      0.0    0.0      0         0
+mfft.len                        Statistics.Transform                      0.0    0.0      0         0
+fi                              Statistics.Transform                      0.0    0.0      0         0
+halve                           Statistics.Transform                      0.0    0.0      0         0
+CAF                             Statistics.Transform                      0.0    0.0      0         0
+kde                             Statistics.Sample.KernelDensity           0.0    0.0      0         0
+kde.range                       Statistics.Sample.KernelDensity           0.0    0.0      0         0
+kde.hi                          Statistics.Sample.KernelDensity           0.0    0.0      0         0
+kde.lo                          Statistics.Sample.KernelDensity           0.0    0.0      0         0
+kde.(...)                       Statistics.Sample.KernelDensity           0.0    0.0      0         0
+kde_                            Statistics.Sample.KernelDensity           0.0    0.0      0         0
+kde_.mesh                       Statistics.Sample.KernelDensity           0.0    0.0      0         0
+kde_.mesh.\                     Statistics.Sample.KernelDensity           0.0    0.0      0         0
+kde_.mesh.d                     Statistics.Sample.KernelDensity           0.0    0.0      0         0
+kde_.density                    Statistics.Sample.KernelDensity           0.0    0.0      0         0
+kde_.density.f                  Statistics.Sample.KernelDensity           0.0    0.0      0         0
+kde_.(...).\                    Statistics.Sample.KernelDensity           0.0    0.0      0         0
+kde_.(...).go                   Statistics.Sample.KernelDensity           0.0    0.0      0         0
+kde_.(...).go.time              Statistics.Sample.KernelDensity           0.0    0.0      0         0
+kde_.(...).go.const             Statistics.Sample.KernelDensity           0.0    0.0      0         0
+kde_.(...).go.k0                Statistics.Sample.KernelDensity           0.0    0.0      0         0
+kde_.(...).f                    Statistics.Sample.KernelDensity           0.0    0.0      0         0
+kde_.(...).f.g                  Statistics.Sample.KernelDensity           0.0    0.0      0         0
+kde_.(...).f.a2v                Statistics.Sample.KernelDensity           0.0    0.0      0         0
+kde_.(...).f.iv                 Statistics.Sample.KernelDensity           0.0    0.0      0         0
+kde_.a                          Statistics.Sample.KernelDensity           0.0    0.0      0         0
+kde_.a.h                        Statistics.Sample.KernelDensity           0.0    0.0      0         0
+kde_.sqr                        Statistics.Sample.KernelDensity           0.0    0.0      0         0
+CAF                             Statistics.Sample.KernelDensity           0.0    0.0      0         0
+welfordMean                     Statistics.Sample                         0.0    0.0      0         0
+welfordMean.fini                Statistics.Sample                         0.0    0.0      0         0
+welfordMean.go                  Statistics.Sample                         0.0    0.0      0         0
+welfordMean.go.m'               Statistics.Sample                         0.0    0.0      0         0
+welfordMean.go.n'               Statistics.Sample                         0.0    0.0      0         0
+fastVar                         Statistics.Sample                         0.0    0.0      0         0
+fastVar.go                      Statistics.Sample                         0.0    0.0      0         0
+fastVar.go.s'                   Statistics.Sample                         0.0    0.0      0         0
+fastVar.go.m'                   Statistics.Sample                         0.0    0.0      0         0
+fastVar.go.n'                   Statistics.Sample                         0.0    0.0      0         0
+fastVar.go.d                    Statistics.Sample                         0.0    0.0      0         0
+CAF                             Statistics.Sample                         0.0    0.0      0         0
+get                             Statistics.Resampling.Bootstrap           0.0    0.0      0    151920
+put                             Statistics.Resampling.Bootstrap           0.0    0.0      0    227184
+dataTypeOf                      Statistics.Resampling.Bootstrap           0.0    0.0      0         0
+toConstr                        Statistics.Resampling.Bootstrap           0.0    0.0      0         0
+gunfold                         Statistics.Resampling.Bootstrap           0.0    0.0      0         0
+gfoldl                          Statistics.Resampling.Bootstrap           0.0    0.0      0         0
+showList                        Statistics.Resampling.Bootstrap           0.0    0.0      0         0
+showsPrec                       Statistics.Resampling.Bootstrap           0.0    0.0      0         0
+readListPrec                    Statistics.Resampling.Bootstrap           0.0    0.0      0         0
+readPrec                        Statistics.Resampling.Bootstrap           0.0    0.0      0         0
+readList                        Statistics.Resampling.Bootstrap           0.0    0.0      0         0
+/=                              Statistics.Resampling.Bootstrap           0.0    0.0      0         0
+==                              Statistics.Resampling.Bootstrap           0.0    0.0      0         0
+typeRep#                        Statistics.Resampling.Bootstrap           0.0    0.0      0         0
+estConfidenceLevel              Statistics.Resampling.Bootstrap           0.0    0.0      0       192
+estUpperBound                   Statistics.Resampling.Bootstrap           0.0    0.0      0         0
+estLowerBound                   Statistics.Resampling.Bootstrap           0.0    0.0      0         0
+estPoint                        Statistics.Resampling.Bootstrap           0.0    0.0      0         0
+$tEstimate                      Statistics.Resampling.Bootstrap           0.0    0.0      0         0
+$cEstimate                      Statistics.Resampling.Bootstrap           0.0    0.0      0         0
+scale                           Statistics.Resampling.Bootstrap           0.0    0.0      0         0
+bootstrapBCA                    Statistics.Resampling.Bootstrap           0.0    0.0      0     81712
+bootstrapBCA.e                  Statistics.Resampling.Bootstrap           0.0    0.0      0      2016
+bootstrapBCA.e.hi               Statistics.Resampling.Bootstrap           0.0    0.0      0       480
+bootstrapBCA.e.hi.a2            Statistics.Resampling.Bootstrap           0.0    0.0      0       192
+bootstrapBCA.e.hi.b2            Statistics.Resampling.Bootstrap           0.0    0.0      0       192
+bootstrapBCA.e.lo               Statistics.Resampling.Bootstrap           0.0    0.0      0       480
+bootstrapBCA.e.lo.a1            Statistics.Resampling.Bootstrap           0.0    0.0      0       192
+bootstrapBCA.e.lo.b1            Statistics.Resampling.Bootstrap           0.0    0.0      0       192
+bootstrapBCA.e.bias             Statistics.Resampling.Bootstrap           0.0    0.0      0       528
+bootstrapBCA.e.pt               Statistics.Resampling.Bootstrap           0.0    0.0      0       432
+bootstrapBCA.e.z1               Statistics.Resampling.Bootstrap           0.0    0.0      0        96
+bootstrapBCA.e.cumn             Statistics.Resampling.Bootstrap           0.0    0.0      0       448
+bootstrapBCA.e.n                Statistics.Resampling.Bootstrap           0.0    0.0      0         0
+bootstrapBCA.e.ni               Statistics.Resampling.Bootstrap           0.0    0.0      0       192
+bootstrapBCA.e.accel            Statistics.Resampling.Bootstrap           0.0    0.0      0       192
+bootstrapBCA.e.accel.sumCubes   Statistics.Resampling.Bootstrap           0.0    0.0      0         0
+bootstrapBCA.e.accel.sumSquares Statistics.Resampling.Bootstrap           0.0    0.0      0         0
+bootstrapBCA.e.accel.(...)      Statistics.Resampling.Bootstrap           0.0    0.0      0         0
+bootstrapBCA.e.accel.f          Statistics.Resampling.Bootstrap           0.0    0.0      0      5760
+bootstrapBCA.e.accel.f.d2       Statistics.Resampling.Bootstrap           0.0    0.0      0         0
+bootstrapBCA.e.accel.f.d        Statistics.Resampling.Bootstrap           0.0    0.0      0         0
+bootstrapBCA.e.accel.jackMean   Statistics.Resampling.Bootstrap           0.0    0.0      0         0
+bootstrapBCA.e.jack             Statistics.Resampling.Bootstrap           0.0    0.0      0       288
+estimate                        Statistics.Resampling.Bootstrap           0.0    0.0      0         0
+CAF                             Statistics.Resampling.Bootstrap           0.0    0.0      0        16
+get                             Statistics.Resampling                     0.0    0.0      0         0
+put                             Statistics.Resampling                     0.0    0.0      0         0
+dataTypeOf                      Statistics.Resampling                     0.0    0.0      0         0
+toConstr                        Statistics.Resampling                     0.0    0.0      0         0
+gunfold                         Statistics.Resampling                     0.0    0.0      0         0
+gfoldl                          Statistics.Resampling                     0.0    0.0      0         0
+showList                        Statistics.Resampling                     0.0    0.0      0         0
+showsPrec                       Statistics.Resampling                     0.0    0.0      0         0
+readListPrec                    Statistics.Resampling                     0.0    0.0      0         0
+readPrec                        Statistics.Resampling                     0.0    0.0      0         0
+readList                        Statistics.Resampling                     0.0    0.0      0         0
+/=                              Statistics.Resampling                     0.0    0.0      0         0
+==                              Statistics.Resampling                     0.0    0.0      0         0
+typeRep#                        Statistics.Resampling                     0.0    0.0      0         0
+fromResample                    Statistics.Resampling                     0.0    0.0      0         0
+$tResample                      Statistics.Resampling                     0.0    0.0      0         0
+$cResample                      Statistics.Resampling                     0.0    0.0      0         0
+resample.\                      Statistics.Resampling                     0.0    0.0      0     82944
+resample.ixs                    Statistics.Resampling                     0.0    0.0      0      6016
+resample.ixs.r                  Statistics.Resampling                     0.0    0.0      0         0
+resample.ixs.q                  Statistics.Resampling                     0.0    0.0      0         0
+resample.ixs.(...)              Statistics.Resampling                     0.0    0.0      0       352
+resample.ests'                  Statistics.Resampling                     0.0    0.0      0      1056
+estimate                        Statistics.Resampling                     0.0    0.0      0         0
+jackknife                       Statistics.Resampling                     0.0    0.0      0       208
+jackknife.f                     Statistics.Resampling                     0.0    0.0      0         0
+jackknifeMean                   Statistics.Resampling                     0.0    0.0      0      2192
+jackknifeMean.l                 Statistics.Resampling                     0.0    0.0      0         0
+jackknifeMean.len               Statistics.Resampling                     0.0    0.0      0         0
+jackknifeVariance               Statistics.Resampling                     0.0    0.0      0         0
+jackknifeStdDev                 Statistics.Resampling                     0.0    0.0      0      7552
+jackknifeVarianceUnb            Statistics.Resampling                     0.0    0.0      0         0
+jackknifeVariance_              Statistics.Resampling                     0.0    0.0      0      3216
+jackknifeVariance_.als          Statistics.Resampling                     0.0    0.0      0      2160
+jackknifeVariance_.ars          Statistics.Resampling                     0.0    0.0      0      2160
+jackknifeVariance_.goa          Statistics.Resampling                     0.0    0.0      0      3840
+jackknifeVariance_.goa.v        Statistics.Resampling                     0.0    0.0      0         0
+jackknifeVariance_.bls          Statistics.Resampling                     0.0    0.0      0      2160
+jackknifeVariance_.brs          Statistics.Resampling                     0.0    0.0      0      2160
+jackknifeVariance_.m            Statistics.Resampling                     0.0    0.0      0        96
+jackknifeVariance_.go           Statistics.Resampling                     0.0    0.0      0         0
+jackknifeVariance_.go.b         Statistics.Resampling                     0.0    0.0      0         0
+jackknifeVariance_.go.q         Statistics.Resampling                     0.0    0.0      0        96
+jackknifeVariance_.n            Statistics.Resampling                     0.0    0.0      0         0
+jackknifeVariance_.len          Statistics.Resampling                     0.0    0.0      0         0
+pfxSumL                         Statistics.Resampling                     0.0    0.0      0     45840
+pfxSumR                         Statistics.Resampling                     0.0    0.0      0     73296
+dropAt                          Statistics.Resampling                     0.0    0.0      0         0
+singletonErr                    Statistics.Resampling                     0.0    0.0      0         0
+CAF                             Statistics.Resampling                     0.0    0.0      0        64
+modErr                          Statistics.Quantile                       0.0    0.0      0         0
+CAF                             Statistics.Quantile                       0.0    0.0      0         0
+CAF                             Paths_criterion                           0.0    0.0      0         0
+CAF                             Criterion.Report                          0.0    0.0      0         0
+CAF                             Criterion.Monad                           0.0    0.0      0         0
+CAF                             Criterion.Measurement                     0.0    0.0      0      2040
+CAF                             Criterion.IO.Printf                       0.0    0.0      0         0
+CAF                             Criterion.IO                              0.0    0.0      0     34608
+CAF                             Criterion.Environment                     0.0    0.0      0      6072
+CAF                             Criterion.Analysis.Types                  0.0    0.0      0         0
+CAF                             Criterion.Analysis                        0.0    0.0      0     10200
+CAF                             Criterion.Internal                        0.0    0.0      0     13720
+CAF                             Criterion.Types                           0.0    0.0      0         0
+CAF                             Criterion.Main                            0.0    0.0      0      2208
+CAF                             Criterion.Config                          0.0    0.0      0         0
+main.cxys                       Main                                      0.0    0.0      0       256
+main.cxs                        Main                                      0.0    0.0      0        24
+scoreBench                      Main                                      0.0    0.0      0       352
+buildChoices                    Main                                      0.0    0.0      0    112064
+buildWord                       Main                                      0.0    0.0      0      5896
+CAF                             Main                                      0.0    0.0      0        16
+CAF                             Score                                     0.0    0.0      0         0
+
+
+                                                                                                   individual     inherited
+COST CENTRE                            MODULE                                    no.     entries  %time %alloc   %time %alloc  ticks     bytes
+
+MAIN                                   MAIN                                      168           0    0.0    0.0   100.0  100.0      2     73896
+ main                                  Main                                      337           0    5.1   32.8    50.6   99.9   6770 12367616584
+  get                                  Statistics.Resampling.Bootstrap           496           0    0.0    0.0     0.0    0.0      0    151920
+  scoreAll                             Score                                     486          42    1.2    2.1     9.5   15.8   1538 776615744
+   scoreAll.\                          Score                                     487     2052181    0.4    0.8     8.3   13.7    566 314061792
+    score                              Score                                     488     2054379    0.1    0.0     7.9   12.9    186         0
+     normalizeScore                    Score                                     492     2000813    0.0    0.0     0.0    0.0      2         0
+     score.minLength                   Score                                     489     2049403    3.3    6.1     7.7   12.9   4367 2318306048
+      minMatchLength                   Score                                     490     2049670    0.4    0.0     4.5    6.7    472         0
+       minMatchLength.matchLenghts     Score                                     491     2037556    3.9    6.5     4.1    6.7   5222 2449913864
+        minMatchLength.matchLenghts.\  Score                                     493      543758    0.0    0.0     0.2    0.2     36  13054608
+         minMatchLength.endMatch       Score                                     494      835740    0.1    0.2     0.1    0.2    186  68607768
+  put                                  Statistics.Resampling.Bootstrap           477          12    0.0    0.0     0.0    0.0      0    227184
+  estConfidenceLevel                   Statistics.Resampling.Bootstrap           476          12    0.0    0.0     0.0    0.0      0       192
+  estUpperBound                        Statistics.Resampling.Bootstrap           475          12    0.0    0.0     0.0    0.0      0         0
+  estLowerBound                        Statistics.Resampling.Bootstrap           474          12    0.0    0.0     0.0    0.0      0         0
+  bootstrapBCA                         Statistics.Resampling.Bootstrap           379           6    0.0    0.0     0.0    0.0      0     81712
+   bootstrapBCA.e                      Statistics.Resampling.Bootstrap           380          10    0.0    0.0     0.0    0.0      0      2016
+    estimate                           Statistics.Resampling.Bootstrap           445          12    0.0    0.0     0.0    0.0      0         0
+    bootstrapBCA.e.hi                  Statistics.Resampling.Bootstrap           440          12    0.0    0.0     0.0    0.0      0       480
+     bootstrapBCA.e.hi.a2              Statistics.Resampling.Bootstrap           443          12    0.0    0.0     0.0    0.0      0       192
+     bootstrapBCA.e.hi.b2              Statistics.Resampling.Bootstrap           442          12    0.0    0.0     0.0    0.0      0       192
+     bootstrapBCA.e.cumn               Statistics.Resampling.Bootstrap           441           0    0.0    0.0     0.0    0.0      0       192
+    bootstrapBCA.e.accel               Statistics.Resampling.Bootstrap           425          12    0.0    0.0     0.0    0.0      0       192
+     bootstrapBCA.e.accel.sumSquares   Statistics.Resampling.Bootstrap           438          12    0.0    0.0     0.0    0.0      0         0
+     bootstrapBCA.e.accel.f.d2         Statistics.Resampling.Bootstrap           432          12    0.0    0.0     0.0    0.0      0         0
+     bootstrapBCA.e.accel.jackMean     Statistics.Resampling.Bootstrap           430          12    0.0    0.0     0.0    0.0      0         0
+      mean                             Statistics.Sample                         431          12    0.0    0.0     0.0    0.0      0         0
+     bootstrapBCA.e.accel.f            Statistics.Resampling.Bootstrap           429          12    0.0    0.0     0.0    0.0      0         0
+     bootstrapBCA.e.accel.f.d          Statistics.Resampling.Bootstrap           428          12    0.0    0.0     0.0    0.0      0         0
+     bootstrapBCA.e.accel.(...)        Statistics.Resampling.Bootstrap           427          12    0.0    0.0     0.0    0.0      0         0
+      bootstrapBCA.e.accel.f.d2        Statistics.Resampling.Bootstrap           437         228    0.0    0.0     0.0    0.0      0         0
+      bootstrapBCA.e.accel.f.d         Statistics.Resampling.Bootstrap           436         228    0.0    0.0     0.0    0.0      0         0
+      bootstrapBCA.e.accel.f           Statistics.Resampling.Bootstrap           433         228    0.0    0.0     0.0    0.0      0      5760
+       bootstrapBCA.e.accel.f.d2       Statistics.Resampling.Bootstrap           435           0    0.0    0.0     0.0    0.0      0         0
+       bootstrapBCA.e.accel.f.d        Statistics.Resampling.Bootstrap           434           0    0.0    0.0     0.0    0.0      0         0
+     bootstrapBCA.e.accel.sumCubes     Statistics.Resampling.Bootstrap           426          12    0.0    0.0     0.0    0.0      0         0
+    bootstrapBCA.e.jack                Statistics.Resampling.Bootstrap           416          12    0.0    0.0     0.0    0.0      0       288
+     jackknife                         Statistics.Resampling                     417          12    0.0    0.0     0.0    0.0      0       208
+      jackknifeStdDev                  Statistics.Resampling                     448           0    0.0    0.0     0.0    0.0      0      7552
+       jackknifeVarianceUnb            Statistics.Resampling                     450           0    0.0    0.0     0.0    0.0      0         0
+        jackknifeVariance_             Statistics.Resampling                     451           6    0.0    0.0     0.0    0.0      0      3216
+         jackknifeVariance_.n          Statistics.Resampling                     471           6    0.0    0.0     0.0    0.0      0         0
+         jackknifeVariance_.go.b       Statistics.Resampling                     470         120    0.0    0.0     0.0    0.0      0         0
+         jackknifeVariance_.go         Statistics.Resampling                     469         120    0.0    0.0     0.0    0.0      0         0
+          jackknifeVariance_.go.b      Statistics.Resampling                     473           0    0.0    0.0     0.0    0.0      0         0
+          jackknifeVariance_.go.q      Statistics.Resampling                     472           6    0.0    0.0     0.0    0.0      0        96
+         jackknifeVariance_.brs        Statistics.Resampling                     467           6    0.0    0.0     0.0    0.0      0      2160
+          pfxSumR                      Statistics.Resampling                     468           0    0.0    0.0     0.0    0.0      0     24432
+         jackknifeVariance_.bls        Statistics.Resampling                     465           6    0.0    0.0     0.0    0.0      0      2160
+          pfxSumL                      Statistics.Resampling                     466           0    0.0    0.0     0.0    0.0      0     15264
+         jackknifeVariance_.ars        Statistics.Resampling                     460           6    0.0    0.0     0.0    0.0      0      2160
+          jackknifeVariance_.goa       Statistics.Resampling                     463         120    0.0    0.0     0.0    0.0      0      1920
+           jackknifeVariance_.goa.v    Statistics.Resampling                     464           0    0.0    0.0     0.0    0.0      0         0
+          jackknifeVariance_.goa.v     Statistics.Resampling                     462         120    0.0    0.0     0.0    0.0      0         0
+          pfxSumR                      Statistics.Resampling                     461           0    0.0    0.0     0.0    0.0      0     24432
+         jackknifeVariance_.m          Statistics.Resampling                     457           6    0.0    0.0     0.0    0.0      0        96
+          mean                         Statistics.Sample                         458           6    0.0    0.0     0.0    0.0      0         0
+         jackknifeVariance_.als        Statistics.Resampling                     453           6    0.0    0.0     0.0    0.0      0      2160
+          jackknifeVariance_.goa       Statistics.Resampling                     456         120    0.0    0.0     0.0    0.0      0      1920
+           jackknifeVariance_.goa.v    Statistics.Resampling                     459           0    0.0    0.0     0.0    0.0      0         0
+          jackknifeVariance_.goa.v     Statistics.Resampling                     455         120    0.0    0.0     0.0    0.0      0         0
+          pfxSumL                      Statistics.Resampling                     454           0    0.0    0.0     0.0    0.0      0     15264
+         jackknifeVariance_.len        Statistics.Resampling                     452           6    0.0    0.0     0.0    0.0      0         0
+      jackknifeMean                    Statistics.Resampling                     418           6    0.0    0.0     0.0    0.0      0      2192
+       jackknifeMean.l                 Statistics.Resampling                     424           6    0.0    0.0     0.0    0.0      0         0
+       pfxSumR                         Statistics.Resampling                     423           0    0.0    0.0     0.0    0.0      0     24432
+       pfxSumL                         Statistics.Resampling                     421           0    0.0    0.0     0.0    0.0      0     15280
+       jackknifeMean.len               Statistics.Resampling                     419           6    0.0    0.0     0.0    0.0      0         0
+    bootstrapBCA.e.z1                  Statistics.Resampling.Bootstrap           410           6    0.0    0.0     0.0    0.0      0        96
+     quantile                          Statistics.Distribution.Normal            411           7    0.0    0.0     0.0    0.0      0       120
+      mean                             Statistics.Distribution.Normal            414           6    0.0    0.0     0.0    0.0      0         0
+      ndCdfDenom                       Statistics.Distribution.Normal            413           6    0.0    0.0     0.0    0.0      0         0
+      quantile.x                       Statistics.Distribution.Normal            412           7    0.0    0.0     0.0    0.0      0       288
+    bootstrapBCA.e.n                   Statistics.Resampling.Bootstrap           405          12    0.0    0.0     0.0    0.0      0         0
+    bootstrapBCA.e.bias                Statistics.Resampling.Bootstrap           401           8    0.0    0.0     0.0    0.0      0       528
+     quantile                          Statistics.Distribution.Normal            406          12    0.0    0.0     0.0    0.0      0       176
+      mean                             Statistics.Distribution.Normal            409          11    0.0    0.0     0.0    0.0      0         0
+      ndCdfDenom                       Statistics.Distribution.Normal            408          11    0.0    0.0     0.0    0.0      0         0
+      quantile.x                       Statistics.Distribution.Normal            407          12    0.0    0.0     0.0    0.0      0       384
+     bootstrapBCA.e.bias.probN         Statistics.Resampling.Bootstrap           404           8    0.0    0.0     0.0    0.0      6         0
+    bootstrapBCA.e.lo                  Statistics.Resampling.Bootstrap           392          11    0.0    0.0     0.0    0.0      0       440
+     bootstrapBCA.e.lo.a1              Statistics.Resampling.Bootstrap           446          11    0.0    0.0     0.0    0.0      0       176
+     bootstrapBCA.e.lo.b1              Statistics.Resampling.Bootstrap           403           7    0.0    0.0     0.0    0.0      0       176
+     bootstrapBCA.e.cumn               Statistics.Resampling.Bootstrap           394           0    0.0    0.0     0.0    0.0      0       176
+    bootstrapBCA.e.lo                  Statistics.Resampling.Bootstrap           387           1    0.0    0.0     0.0    0.0      0        40
+     bootstrapBCA.e.lo.a1              Statistics.Resampling.Bootstrap           415           1    0.0    0.0     0.0    0.0      0        16
+     bootstrapBCA.e.lo.b1              Statistics.Resampling.Bootstrap           400           1    0.0    0.0     0.0    0.0      0        16
+     bootstrapBCA.e.cumn               Statistics.Resampling.Bootstrap           388           0    0.0    0.0     0.0    0.0      0        32
+    bootstrapBCA.e.cumn                Statistics.Resampling.Bootstrap           386          12    0.0    0.0     0.0    0.0      0         0
+     cumulative                        Statistics.Distribution.Normal            396          19    0.0    0.0     0.0    0.0      0       400
+      ndCdfDenom                       Statistics.Distribution.Normal            444          23    0.0    0.0     0.0    0.0      0         0
+      mean                             Statistics.Distribution.Normal            398          19    0.0    0.0     0.0    0.0      0         0
+     cumulative                        Statistics.Distribution.Normal            395           1    0.0    0.0     0.0    0.0      0        32
+      ndCdfDenom                       Statistics.Distribution.Normal            439           1    0.0    0.0     0.0    0.0      0         0
+      mean                             Statistics.Distribution.Normal            397           1    0.0    0.0     0.0    0.0      0         0
+    bootstrapBCA.e.ni                  Statistics.Resampling.Bootstrap           385          12    0.0    0.0     0.0    0.0      0       192
+    bootstrapBCA.e.pt                  Statistics.Resampling.Bootstrap           381          10    0.0    0.0     0.0    0.0      0       432
+     mean                              Statistics.Sample                         384          11    0.0    0.0     0.0    0.0      0         0
+     mean                              Statistics.Sample                         383           1    0.0    0.0     0.0    0.0      0         0
+     estimate                          Statistics.Resampling                     382           9    0.0    0.0     0.0    0.0      0         0
+  estPoint                             Statistics.Resampling.Bootstrap           378          24    0.0    0.0     0.0    0.0      0         0
+  withSystemRandom                     System.Random.MWC                         354           6    0.0    0.0    34.5   41.1      0     84816
+   resample                            Statistics.Resampling                     363           6    0.2    0.0    34.5   41.1    235  11336992
+    resample.ests'                     Statistics.Resampling                     374           6    0.0    0.0     0.0    0.0      0      1056
+     estimate                          Statistics.Resampling                     376          12    0.0    0.0     0.0    0.0      0         0
+    resample.\                         Statistics.Resampling                     370          24    0.0    0.0    34.3   41.1      0     82944
+     resample.\.loop                   Statistics.Resampling                     372      591898    1.3    0.6    34.3   41.0   1757 241108432
+      resample.\.loop.\                Statistics.Resampling                     375     1181163    0.3    0.3     0.4    0.3    398  99968128
+       mean                            Statistics.Sample                         377     1179468    0.1    0.0     0.1    0.0    123         0
+      uniform                          System.Random.MWC                         373     9375937   32.6   40.1    32.6   40.1  43336 15133740464
+     uniform                           System.Random.MWC                         371           6    0.0    0.0     0.0    0.0      6   7622544
+    resample.ixs                       Statistics.Resampling                     364           6    0.0    0.0     0.0    0.0      0      6016
+     resample.ixs.q                    Statistics.Resampling                     369           6    0.0    0.0     0.0    0.0      0         0
+     resample.ixs.(...)                Statistics.Resampling                     366           6    0.0    0.0     0.0    0.0      0       352
+     resample.ixs.r                    Statistics.Resampling                     365           6    0.0    0.0     0.0    0.0      0         0
+   acquireSeedSystem                   System.Random.MWC                         356           0    0.0    0.0     0.0    0.0      0      6448
+    acquireSeedSystem.\                System.Random.MWC                         358           6    0.0    0.0     0.0    0.0      1    211552
+     acquireSeedSystem.\.\             System.Random.MWC                         360           6    0.0    0.0     0.0    0.0      3      4128
+  scoreBench                           Main                                      342           2    0.0    0.0     0.8    5.1      0         0
+   scoreAll                            Score                                     343          84    0.0    0.1     0.8    5.1     39  31593672
+    scoreAll.\                         Score                                     347       84004    0.1    0.3     0.8    5.0     81 108373808
+     score                             Score                                     349       84009    0.0    0.0     0.7    4.7      3         0
+      normalizeScore                   Score                                     353       84006    0.0    0.0     0.0    0.0     13         0
+      score.minLength                  Score                                     350       84009    0.1    0.5     0.7    4.7    132 176756936
+       minMatchLength                  Score                                     351       84008    0.0    0.0     0.6    4.3     25        96
+        minMatchLength.matchLenghts    Score                                     352       84007    0.1    0.5     0.6    4.3    185 205653712
+         minMatchLength.matchLenghts.\ Score                                     480     1008117    0.0    0.1     0.4    3.7     14  24194808
+          minMatchLength.endMatch      Score                                     481     8568871    0.4    3.7     0.4    3.7    553 1376049392
+         minMatchLength.matchLenghts.\ Score                                     478           1    0.0    0.0     0.0    0.0      0        24
+          minMatchLength.endMatch      Score                                     479          16    0.0    0.0     0.0    0.0      0      2880
+  mean                                 Statistics.Sample                         340           2    0.0    0.0     0.0    0.0      2         0
+  main.benchWords                      Main                                      338           1    0.7    5.2     0.7    5.2    910 1952735920
+ CAF                                   Score                                     335           0    0.0    0.0     0.0    0.0      0         0
+  scoreAll                             Score                                     346           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Main                                      334           0    0.0    0.0     0.0    0.0      0        16
+  main                                 Main                                      336           1    0.0    0.0     0.0    0.0      0     14016
+   main.cxys                           Main                                      482           1    0.0    0.0     0.0    0.0      0       256
+    buildChoices                       Main                                      483           1    0.0    0.0     0.0    0.0      0     56032
+     buildWord                         Main                                      485           1    0.0    0.0     0.0    0.0      0      2296
+     buildWord                         Main                                      484           1    0.0    0.0     0.0    0.0      0      2200
+   main.cxs                            Main                                      344           1    0.0    0.0     0.0    0.0      0        24
+    buildChoices                       Main                                      345           1    0.0    0.0     0.0    0.0      0     56032
+     buildWord                         Main                                      348           1    0.0    0.0     0.0    0.0      0      1400
+   scoreBench                          Main                                      341           4    0.0    0.0     0.0    0.0      0       352
+   main.benchWords                     Main                                      339           0    0.0    0.0     0.0    0.0      0      9176
+ CAF                                   Criterion.Config                          333           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Criterion.Main                            332           0    0.0    0.0     0.0    0.0      0      2208
+ CAF                                   Criterion.Types                           331           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Criterion.Internal                        330           0    0.0    0.0     0.0    0.0      0     13720
+ CAF                                   Criterion.Analysis                        329           0    0.0    0.0     0.0    0.0      0     10200
+ CAF                                   Criterion.Analysis.Types                  328           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Criterion.Environment                     327           0    0.0    0.0     0.0    0.0      0      6072
+ CAF                                   Criterion.IO                              326           0    0.0    0.0     0.0    0.0      0     34608
+ CAF                                   Criterion.IO.Printf                       325           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Criterion.Measurement                     324           0    0.0    0.0     0.0    0.0      0      2040
+ CAF                                   Criterion.Monad                           323           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Criterion.Report                          322           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Paths_criterion                           321           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Statistics.Quantile                       320           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Statistics.Resampling                     319           0    0.0    0.0     0.0    0.0      0        64
+  jackknifeVarianceUnb                 Statistics.Resampling                     449           1    0.0    0.0     0.0    0.0      0         0
+  jackknifeStdDev                      Statistics.Resampling                     447           1    0.0    0.0     0.0    0.0      0         0
+  pfxSumR                              Statistics.Resampling                     422           1    0.0    0.0     0.0    0.0      0         0
+  pfxSumL                              Statistics.Resampling                     420           1    0.0    0.0     0.0    0.0      0        32
+  resample                             Statistics.Resampling                     367           0    0.0    0.0     0.0    0.0      0         0
+   resample.ixs                        Statistics.Resampling                     368           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Statistics.Resampling.Bootstrap           318           0    0.0    0.0     0.0    0.0      0        16
+  get                                  Statistics.Resampling.Bootstrap           495           1    0.0    0.0     0.0    0.0      0         0
+  bootstrapBCA                         Statistics.Resampling.Bootstrap           389           0    0.0    0.0     0.0    0.0      0         0
+   bootstrapBCA.e                      Statistics.Resampling.Bootstrap           390           0    0.0    0.0     0.0    0.0      0         0
+    bootstrapBCA.e.cumn                Statistics.Resampling.Bootstrap           391           0    0.0    0.0     0.0    0.0      0        48
+ CAF                                   Statistics.Sample                         317           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Statistics.Sample.KernelDensity           316           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Statistics.Transform                      315           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Statistics.Types                          314           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Statistics.Distribution.Normal            313           0    0.0    0.0     0.0    0.0      0         0
+  quantile                             Statistics.Distribution.Normal            402           1    0.0    0.0     0.0    0.0      0         0
+  standard                             Statistics.Distribution.Normal            399           1    0.0    0.0     0.0    0.0      0        96
+  cumulative                           Statistics.Distribution.Normal            393           1    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Statistics.Function                       312           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Statistics.Math.RootFinding               311           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Statistics.Function.Comparison            310           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Statistics.Distribution                   309           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Vector.Binary                        308           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Vector.Algorithms.Optimal            307           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Vector.Algorithms.Intro              306           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Control.Monad.Par.Scheds.TraceInternal    305           0    0.0    0.0     0.0    0.0      0        16
+ CAF                                   Control.Parallel.Strategies               304           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Numeric.SpecFunctions                     303           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Numeric.Sum                               302           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Numeric.MathFunctions.Constants           301           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Number.Erf                           300           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   System.Random.MWC                         299           0    0.0    0.0     0.0    0.0      0        48
+  coff                                 System.Random.MWC                         362           1    0.0    0.0     0.0    0.0      0         0
+  ioff                                 System.Random.MWC                         361           1    0.0    0.0     0.0    0.0      0         0
+  acquireSeedSystem                    System.Random.MWC                         355           1    0.0    0.0     0.0    0.0      0        16
+   acquireSeedSystem.random            System.Random.MWC                         359           1    0.0    0.0     0.0    0.0      0       880
+   acquireSeedSystem.nbytes            System.Random.MWC                         357           1    0.0    0.0     0.0    0.0      0         0
+ CAF                                   System.Random.MWC.Distributions           298           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Text.Hastache                             297           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Text.Hastache.Context                     296           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Binary.Get.Internal                  295           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Binary.Class                         294           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Vector.Internal.Check                293           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Vector.Fusion.Util                   292           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Vector.Fusion.Stream.Monadic         291           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Vector.Generic.Mutable               290           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Vector.Generic.Base                  289           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Vector.Primitive.Mutable             288           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Vector.Primitive                     287           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Vector.Storable.Mutable              286           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Vector.Storable                      285           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Vector.Unboxed.Base                  284           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Vector.Unboxed                       283           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Vector.Mutable                       282           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Vector                               281           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Vector.Fusion.Stream.Size            280           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Vector.Generic                       279           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Vector.Fusion.Stream                 278           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Vector.Generic.New                   277           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Control.Monad.Primitive                   276           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Primitive.Types                      275           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Primitive.Array                      274           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Primitive.ByteArray                  273           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Control.Monad.Reader.Class                272           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Text                                 271           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Text.Array                           270           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Text.Encoding                        269           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Text.Encoding.Error                  268           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Text.IO                              267           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Text.Internal                        266           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Text.Internal.Builder                265           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Text.Internal.Encoding.Fusion        264           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Text.Internal.Functions              263           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Text.Internal.Fusion                 262           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Text.Internal.Fusion.Common          261           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Text.Internal.Fusion.Size            260           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Text.Internal.Fusion.Types           259           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Text.Internal.IO                     258           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Text.Internal.Lazy                   257           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Text.Internal.Lazy.Fusion            256           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Text.Lazy                            255           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Text.Lazy.Encoding                   254           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Text.Lazy.IO                         253           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Text.Read                            252           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Text.Unsafe                          251           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Text.Internal.Lazy.Encoding.Fusion   250           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Text.Internal.Lazy.Search            249           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Text.Internal.Read                   248           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   System.FilePath.Glob.Base                 247           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   System.FilePath.Glob.Match                246           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   System.FilePath.Glob.Utils                245           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.DList                                244           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   System.Directory                          243           0    0.0    0.0     0.0    0.0      0       448
+ CAF                                   Data.Map.Base                             242           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Set.Base                             241           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   System.Posix.Files                        240           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   System.Posix.Directory                    239           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   System.Posix.Directory.Common             238           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Time.Clock.CTimeval                  237           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.ByteString.Internal                  236           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.ByteString.Lazy                      235           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.ByteString.Lazy.Internal             234           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.ByteString                           233           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Control.Exception.Base                    232           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Maybe                                231           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Monoid                               230           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.Typeable.Internal                    229           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   GHC.Conc.Sync                             228           0    0.0    0.0     0.0    0.0      0        16
+ CAF                                   GHC.Err                                   227           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   GHC.IO.Encoding                           226           0    0.0    0.0     0.0    0.0      0      3808
+ CAF                                   GHC.IO.Exception                          225           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   GHC.IO.Handle                             224           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   GHC.IO.Handle.Text                        223           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   GHC.Real                                  222           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   GHC.Show                                  221           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   System.CPUTime                            220           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   System.Exit                               219           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   System.IO                                 218           0    0.0    0.0     0.0    0.0      0        16
+ CAF                                   System.Posix.Internals                    217           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Text.ParserCombinators.ReadP              216           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Text.Printf                               215           0    0.0    0.0     0.0    0.0      0      2384
+ CAF                                   Data.Data                                 214           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Data.List                                 213           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   GHC.Conc.Signal                           212           0    0.0    0.0     0.0    0.0      0       656
+ CAF                                   GHC.Enum                                  211           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   GHC.Exception                             210           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   GHC.Float                                 209           0    0.0    0.0     0.0    0.0      0     46920
+ CAF                                   GHC.ForeignPtr                            208           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   GHC.IO                                    207           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   GHC.IO.Encoding.UTF8                      206           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   GHC.IO.Handle.FD                          205           0    0.0    0.0     0.0    0.0      0     34480
+ CAF                                   GHC.IO.Handle.Internals                   204           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   GHC.List                                  203           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   GHC.Read                                  202           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   System.Console.GetOpt                     201           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   System.Environment                        200           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Text.Read                                 199           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   GHC.Event.EPoll                           198           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   GHC.Event.Internal                        197           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   GHC.Event.Thread                          196           0    0.0    0.0     0.0    0.0      0      1920
+ CAF                                   Data.Char                                 195           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   GHC.Arr                                   194           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   GHC.IO.FD                                 193           0    0.0    0.0     0.0    0.0      0        16
+ CAF                                   GHC.Int                                   192           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   GHC.TopHandler                            191           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Text.Read.Lex                             190           0    0.0    0.0     0.0    0.0      0      2120
+ CAF                                   GHC.Event.Manager                         189           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   GHC.Event.Poll                            188           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   Foreign.Marshal.Alloc                     187           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   GHC.Float.ConversionUtils                 186           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   GHC.IO.Encoding.Iconv                     185           0    0.0    0.0     0.0    0.0      0       232
+ CAF                                   GHC.IO.Encoding.UTF16                     184           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   GHC.IO.Handle.Types                       183           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   GHC.Event.Array                           182           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   GHC.Event.Control                         181           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   GHC.Event.PSQ                             180           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   GHC.Event.TimerManager                    179           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   GHC.IO.Encoding.UTF32                     178           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   GHC.IO.Encoding.Failure                   177           0    0.0    0.0     0.0    0.0      0         0
+ CAF                                   GHC.Integer.Logarithms.Internals          176           0    0.0    0.0     0.0    0.0      0       304
+ CAF                                   GHC.Integer.Type                          175           0    0.0    0.0     0.0    0.0      0         0
+ SYSTEM                                SYSTEM                                    174           0   10.3    0.1    10.3    0.1  13624  20885792
+ GC                                    GC                                        173           0   17.8    0.0    17.8    0.0  23675      8896
+ OVERHEAD_of                           PROFILING                                 172           0    0.5    0.0     0.5    0.0    698         0
+ DONT_CARE                             MAIN                                      171           0    0.0    0.0     0.0    0.0      0         0
+ PINNED                                SYSTEM                                    170           0    0.0    0.0     0.0    0.0      0         0
+ IDLE                                  IDLE                                      169           0   20.8    0.0    20.8    0.0  27646         0
