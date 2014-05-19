@@ -22,10 +22,11 @@ import           Tty
 {-TODO: handle CtrlC properly -}
 {-TODO: implement withTty that handles restoring tty state-}
 {-TODO: getting unweildy passing around currMatchCount and choicesToShow-}
+{-TODO: Try using threadscope-}
 {-TODO: Tons of time in GC, check for space leaks: -}
   {-http://www.haskell.org/haskellwiki/Performance/GHC#Measuring_performance-}
 
-{-TDOO:  Do this refactor: -- "...return Abort | Quit?, sanetty duplicated " -}
+{-TODO:  Do this refactor: -- "...return Abort | Quit?, sanetty duplicated " -}
 
 data KeyPress = CtrlC | CtrlN | CtrlP | Enter
                 | Invisible | Backspace | PlainChar Char
@@ -94,9 +95,9 @@ draw tty rendered = do
 dropLast :: String -> String
 dropLast = reverse . drop 1 . reverse
 
-writeSelection :: Handle -> Choice -> IO ()
-writeSelection tty choice = do
-    hCursorDown tty $ length $ finalMatches choice
+writeSelection :: Handle -> Choice -> Int -> IO ()
+writeSelection tty choice choicesToShow = do
+    hCursorDown tty $ length $ take choicesToShow $ finalMatches choice
     hSetCursorColumn tty 0
     saneTty
     hPutStr tty "\n"
@@ -106,10 +107,12 @@ writeSelection tty choice = do
 
 abort :: Handle -> IO ()
 abort tty = do
-    hCursorDown tty 1
+    {-hCursorUp tty 1-}
+    hSetCursorColumn tty 0
+    writeLines tty [("", Reset)]
     saneTty -- duplicated in writeSelection
-    putStrLn "Quit :("
-    exitSuccess
+    {-hPutStr tty "\n"-}
+    exitFailure
 
 handleInput :: Char -> Search -> Int -> Action
 handleInput inputChar search currMatchCount =
@@ -156,7 +159,7 @@ main = do
       x <- hGetChar tty
       case handleInput x search currMatchCount of
           Abort -> abort tty
-          MakeChoice c -> writeSelection tty c
+          MakeChoice c -> writeSelection tty c choicesToShow
           Ignore -> eventLoop tty search currMatchCount choicesToShow
           NewSearch newSearch -> do
               let rendered = render newSearch choicesToShow
