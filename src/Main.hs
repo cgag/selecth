@@ -8,9 +8,9 @@ import           Data.List           (sortBy)
 import qualified Data.Map            as M
 import           Data.Maybe          (fromMaybe)
 import           Data.Monoid         ((<>))
-import           Safe (atMay)
+import           Safe                (atMay)
 
-import           System.Exit         (exitSuccess, exitFailure)
+import           System.Exit         (exitFailure, exitSuccess)
 import           System.IO           (Handle, IOMode (..), hClose, hGetChar,
                                       hPutStr, openFile)
 
@@ -19,9 +19,9 @@ import           System.Console.ANSI
 import           Score
 import           Tty
 
-{-TODO: handle CtrlC properly -}
 {-TODO: implement withTty that handles restoring tty state-}
 {-TODO: getting unweildy passing around currMatchCount and choicesToShow-}
+
 {-TODO: Try using threadscope-}
 {-TODO: Tons of time in GC, check for space leaks: -}
   {-http://www.haskell.org/haskellwiki/Performance/GHC#Measuring_performance-}
@@ -34,7 +34,8 @@ data KeyPress = CtrlC | CtrlN | CtrlP | Enter
 data Search = Search
     { query     :: String
     , choices   :: [String]
-    , selection :: Int } deriving Show
+    , selection :: Int
+    } deriving Show
 
 data RenderedSearch = RenderedSearch
     { queryString   :: String
@@ -47,7 +48,9 @@ data Choice = Choice
     , matchIndex   :: Int
     }
 
-data Action = NewSearch Search | MakeChoice Choice | Abort | Ignore
+data Action       = SearchAction SearchAction | ExitAction ExitAction
+data SearchAction = NewSearch Search | Ignore
+data ExitAction   = Abort | MakeChoice Choice
 
 specialChars :: M.Map Char KeyPress
 specialChars = M.fromList [ ('\ETX', CtrlC)
@@ -72,7 +75,7 @@ render (Search {query=q, choices=cs, selection=selIndex}) choicesToShow =
         matched = take choicesToShow $ matches q cs
         matchLines = pad matched
         renderedMatchLines = map (\(m, i) ->
-                                    if i == selIndex
+                                    if i == selIndex && m /= " "
                                     then (m, SetSwapForegroundBackground True)
                                     else (m, Reset))
                              $ zip matchLines [0..]
@@ -98,8 +101,6 @@ dropLast = reverse . drop 1 . reverse
 writeSelection :: Handle -> Choice -> Int -> IO ()
 writeSelection tty choice choicesToShow = do
     hCursorDown tty $ length $ take choicesToShow $ finalMatches choice
-    hSetCursorColumn tty 0
-    saneTty
     hPutStr tty "\n"
     case finalMatches choice `atMay` matchIndex choice of
         Just match -> putStrLn match >> exitSuccess
@@ -107,30 +108,30 @@ writeSelection tty choice choicesToShow = do
 
 abort :: Handle -> IO ()
 abort tty = do
-    {-hCursorUp tty 1-}
     hSetCursorColumn tty 0
-    writeLines tty [("", Reset)]
-    saneTty -- duplicated in writeSelection
-    {-hPutStr tty "\n"-}
     exitFailure
 
 handleInput :: Char -> Search -> Int -> Action
 handleInput inputChar search currMatchCount =
     case charToKeypress inputChar of
-        CtrlC -> Abort
-        Enter -> MakeChoice Choice {
-                              finalMatches = matches (query search)
-                                                     (choices search)
-                            , matchIndex = selection search
-                            }
-        Backspace   -> NewSearch search { query = dropLast $ query search
-                                        , selection = 0 }
-        PlainChar c -> NewSearch search { query = query search ++ [c]
-                                        , selection = 0 }
-        CtrlN -> NewSearch search { selection = min (selection search + 1)
-                                                    (currMatchCount - 1) }
-        CtrlP -> NewSearch search { selection = max (selection search - 1) 0 }
-        Invisible -> Ignore
+        CtrlC -> ExitAction Abort
+        Enter -> ExitAction $ MakeChoice Choice {
+                                finalMatches = matches (query search)
+                                                       (choices search)
+                              , matchIndex = selection search
+                              }
+        Backspace   -> SearchAction $ NewSearch search 
+            { query = dropLast $ query search
+            , selection = 0 }
+        PlainChar c -> SearchAction $ NewSearch search 
+            { query = query search ++ [c]
+            , selection = 0 }
+        CtrlN -> SearchAction $ NewSearch search 
+            { selection = min (selection search + 1)
+                              (currMatchCount - 1) }
+        CtrlP -> SearchAction $ NewSearch search 
+            { selection = max (selection search - 1) 0 }
+        Invisible -> SearchAction Ignore
 
 
 main :: IO ()
@@ -158,10 +159,16 @@ main = do
     eventLoop tty search currMatchCount choicesToShow = do
       x <- hGetChar tty
       case handleInput x search currMatchCount of
-          Abort -> abort tty
-          MakeChoice c -> writeSelection tty c choicesToShow
-          Ignore -> eventLoop tty search currMatchCount choicesToShow
-          NewSearch newSearch -> do
+          ExitAction eaction -> do
+            hSetCursorColumn tty 0
+            saneTty
+            case eaction of 
+                Abort -> abort tty
+                MakeChoice c -> writeSelection tty c choicesToShow
+          SearchAction saction -> do
+              let newSearch = case saction of 
+                                  Ignore -> search
+                                  NewSearch s -> s
               let rendered = render newSearch choicesToShow
               draw tty rendered
               eventLoop tty newSearch (matchCount rendered) choicesToShow

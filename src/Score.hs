@@ -39,6 +39,7 @@ score q choice
                   in normalizeScore minLength q choice
 
 scoreAll :: String -> [String] -> [(String, Double)]
-scoreAll query choices = map (\choice -> (choice, score (map toLower query) choice)) choices
-                         `using` parListChunk 1000 rdeepseq
-
+scoreAll query choices = 
+    let lowerQuery = map toLower query
+    in map (\choice -> (choice, score lowerQuery choice)) choices
+       `using` parListChunk 1000 rdeepseq
