@@ -153,7 +153,7 @@ main = do
     let initSearch = Search { query="", choices=initialChoices, selection=0 }
     draw tty $ render initSearch choicesToShow
 
-    eventLoop tty initSearch 0 choicesToShow
+    eventLoop tty initSearch choicesToShow choicesToShow
 
   where
     eventLoop :: Handle -> Search -> Int -> Int -> IO ()
@@ -164,9 +164,8 @@ main = do
             hSetCursorColumn tty 0
             saneTty
             case eaction of
-                Abort -> hClose tty >> exitFailure
-                MakeChoice c -> writeSelection tty c choicesToShow
-            hClose tty
+                Abort -> hCursorDown tty (currMatchCount + 1) >> hClose tty >> exitFailure
+                MakeChoice c -> writeSelection tty c choicesToShow >> hClose tty
           SearchAction saction -> do
               let newSearch = case saction of
                                   Ignore -> search
