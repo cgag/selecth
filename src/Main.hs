@@ -19,14 +19,9 @@ import           System.Console.ANSI
 import           Score
 import           Tty
 
-{- TODO: implement withTty that handles restoring tty state -}
+{- TODO: implement soething like withTty that handles restoring tty state -}
 {- TODO: getting unweildy passing around currMatchCount and choicesToShow-}
-
-{-TODO: Try using threadscope-}
-{-TODO: Tons of time in GC, check for space leaks: -}
-  {-http://www.haskell.org/haskellwiki/Performance/GHC#Measuring_performance-}
-
-{-TODO: Thing resource monad would have helped a lot with ensuring tty close-}
+{-TODO: look into resource monad for ensuring tty gets closed? -}
 
 data KeyPress = CtrlC | CtrlN | CtrlP | CtrlW | Enter
                 | Invisible | Backspace | PlainChar Char
@@ -76,7 +71,7 @@ render (Search {query=q, choices=cs, selection=selIndex}) choicesToShow =
         matched = take choicesToShow $ matches q cs
         matchLines = pad matched
         renderedMatchLines = map (\(m, i) ->
-                                    if i == selIndex && m /= " " -- don't highlight pad line 
+                                    if i == selIndex && m /= " " -- don't highlight pad line
                                     then (m, SetSwapForegroundBackground True)
                                     else (m, Reset))
                              $ zip matchLines [0..]
@@ -100,7 +95,7 @@ dropLast :: String -> String
 dropLast = reverse . drop 1 . reverse
 
 dropLastWord :: String -> String
-dropLastWord = reverse . dropWhile (/=' ') . reverse 
+dropLastWord = reverse . dropWhile (/=' ') . reverse
 
 writeSelection :: Handle -> Choice -> Int -> IO ()
 writeSelection tty choice choicesToShow = do
@@ -119,22 +114,28 @@ handleInput inputChar search currMatchCount =
                                                        (choices search)
                               , matchIndex = selection search
                               }
-        Backspace   -> SearchAction $ NewSearch search 
+        Backspace   -> SearchAction $ NewSearch search
             { query = dropLast $ query search
             , selection = 0 }
-        PlainChar c -> SearchAction $ NewSearch search 
+        PlainChar c -> SearchAction $ NewSearch search
             { query = query search ++ [c]
             , selection = 0 }
-        CtrlN -> SearchAction $ NewSearch search 
+        CtrlN -> SearchAction $ NewSearch search
             { selection = min (selection search + 1)
                               (currMatchCount - 1) }
-        CtrlP -> SearchAction $ NewSearch search 
+        CtrlP -> SearchAction $ NewSearch search
             { selection = max (selection search - 1) 0 }
-        CtrlW -> SearchAction $ NewSearch search 
-            { query = dropLastWord (query search) 
+        CtrlW -> SearchAction $ NewSearch search
+            { query = dropLastWord (query search)
             , selection = 0 }
         Invisible -> SearchAction Ignore
 
+{-withTty :: (Handle -> IO ()) -> IO ()-}
+{-withTty f = do -}
+    {-tty <- openFile "/dev/tty" ReadWriteMode-}
+    {-configureTty tty-}
+    {-f tty-}
+    {-saneTty-}
 
 main :: IO ()
 main = do
@@ -152,7 +153,6 @@ main = do
     let initSearch = Search { query="", choices=initialChoices, selection=0 }
     draw tty $ render initSearch choicesToShow
 
-    -- maybe this should return Abort | Quit?, ExitSuccess + sanetty duplicated
     eventLoop tty initSearch 0 choicesToShow
 
   where
@@ -163,12 +163,12 @@ main = do
           ExitAction eaction -> do
             hSetCursorColumn tty 0
             saneTty
-            case eaction of 
-                Abort -> exitFailure
+            case eaction of
+                Abort -> hClose tty >> exitFailure
                 MakeChoice c -> writeSelection tty c choicesToShow
             hClose tty
           SearchAction saction -> do
-              let newSearch = case saction of 
+              let newSearch = case saction of
                                   Ignore -> search
                                   NewSearch s -> s
               let rendered = render newSearch choicesToShow
