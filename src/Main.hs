@@ -26,9 +26,9 @@ import           Tty
 {-TODO: Tons of time in GC, check for space leaks: -}
   {-http://www.haskell.org/haskellwiki/Performance/GHC#Measuring_performance-}
 
-{-TODO:  Do this refactor: -- "...return Abort | Quit?, sanetty duplicated " -}
+{-TODO: Thing resource monad would have helped a lot with ensuring tty close-}
 
-data KeyPress = CtrlC | CtrlN | CtrlP | Enter
+data KeyPress = CtrlC | CtrlN | CtrlP | CtrlW | Enter
                 | Invisible | Backspace | PlainChar Char
 
 data Search = Search
@@ -57,7 +57,8 @@ specialChars = M.fromList [ ('\ETX', CtrlC)
                           , ('\r',   Enter)
                           , ('\DEL', Backspace)
                           , ('\SO',  CtrlN)
-                          , ('\DLE', CtrlP)]
+                          , ('\DLE', CtrlP)
+                          , ('\ETB', CtrlW)]
 
 charToKeypress :: Char -> KeyPress
 charToKeypress c = fromMaybe (if isPrint c then PlainChar c else Invisible)
@@ -98,6 +99,9 @@ draw tty rendered = do
 dropLast :: String -> String
 dropLast = reverse . drop 1 . reverse
 
+dropLastWord :: String -> String
+dropLastWord = reverse . dropWhile (/=' ') . reverse 
+
 writeSelection :: Handle -> Choice -> Int -> IO ()
 writeSelection tty choice choicesToShow = do
     hCursorDown tty $ length $ take choicesToShow $ finalMatches choice
@@ -126,6 +130,9 @@ handleInput inputChar search currMatchCount =
                               (currMatchCount - 1) }
         CtrlP -> SearchAction $ NewSearch search 
             { selection = max (selection search - 1) 0 }
+        CtrlW -> SearchAction $ NewSearch search 
+            { query = dropLastWord (query search) 
+            , selection = 0 }
         Invisible -> SearchAction Ignore
 
 
