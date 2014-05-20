@@ -24,6 +24,7 @@ executable selecth
   -- other-extensions:    
   build-depends:       base >= 4.6
                      , text >= 1.1.1.1
+                     , bytestring >= 0.10.4.0 
                      , containers >= 0.5.0.0
                      , process >= 1.2.0.0
                      , ansi-terminal >= 0.6.1

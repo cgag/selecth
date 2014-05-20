@@ -2,12 +2,16 @@
 
 import           Control.Monad
 
+import qualified Data.ByteString     as B
 import           Data.Char           (isPrint)
 import           Data.Function       (on)
 import           Data.List           (sortBy)
 import qualified Data.Map            as M
 import           Data.Maybe          (fromMaybe)
 import           Data.Monoid         ((<>))
+import qualified Data.Text           as T
+import qualified Data.Text.Encoding  as TE
+import qualified Data.Text.Encoding.Error  as Err
 import           Safe                (atMay)
 
 import           System.Exit         (exitFailure, exitSuccess)
@@ -19,9 +23,11 @@ import           System.Console.ANSI
 import           Score
 import           Tty
 
+{- TODO: handle this case: echo "девуш\xD0:" | selecta, need a version of GB''s
+ - massage_unicode function -}
 {- TODO: implement soething like withTty that handles restoring tty state -}
 {- TODO: getting unweildy passing around currMatchCount and choicesToShow-}
-{-TODO: look into resource monad for ensuring tty gets closed? -}
+{- TODO: look into resource monad for ensuring tty gets closed? -}
 
 data KeyPress = CtrlC | CtrlN | CtrlP | CtrlW | Enter
                 | Invisible | Backspace | PlainChar Char
@@ -85,7 +91,7 @@ draw :: Handle -> RenderedSearch -> IO ()
 draw tty rendered = do
     withCursorHidden tty $
         writeLines tty (renderedLines rendered)
-    hSetCursorColumn tty $ length $ queryString rendered
+    hSetCursorColumn tty . length $ queryString rendered
 
 -- TODO: Handle exceptions, ensure tty gets restored to default settings
 -- TODO: Ensure handle to tty is closed?  See what GB ensures.
@@ -99,7 +105,7 @@ dropLastWord = reverse . dropWhile (/=' ') . reverse
 
 writeSelection :: Handle -> Choice -> Int -> IO ()
 writeSelection tty choice choicesToShow = do
-    hCursorDown tty $ length $ take choicesToShow $ finalMatches choice
+    hCursorDown tty . length . take choicesToShow $ finalMatches choice
     hPutStr tty "\n"
     case finalMatches choice `atMay` matchIndex choice of
         Just match -> putStrLn match >> exitSuccess
@@ -137,11 +143,13 @@ handleInput inputChar search currMatchCount =
     {-f tty-}
     {-saneTty-}
 
+
 main :: IO ()
 main = do
     tty <- openFile "/dev/tty" ReadWriteMode
     configureTty tty
-    initialChoices <- liftM lines getContents
+    contents <- B.getContents
+    let initialChoices = map T.unpack . T.lines . TE.decodeUtf8With Err.ignore $ contents
 
     (winHeight, _) <- unsafeSize tty
     let choicesToShow = min 20 (winHeight - 1)
