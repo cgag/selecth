@@ -2,29 +2,28 @@
 
 import           Control.Monad
 
-import qualified Data.ByteString     as B
-import           Data.Char           (isPrint)
-import           Data.Function       (on)
-import           Data.List           (sortBy)
-import qualified Data.Map            as M
-import           Data.Maybe          (fromMaybe)
-import           Data.Monoid         ((<>))
-import qualified Data.Text           as T
-import qualified Data.Text.Encoding  as TE
-import qualified Data.Text.Encoding.Error  as Err
-import           Safe                (atMay)
+import qualified Data.ByteString          as B
+import           Data.Char                (isPrint)
+import           Data.Function            (on)
+import           Data.List                (sortBy)
+import qualified Data.Map                 as M
+import           Data.Maybe               (fromMaybe)
+import           Data.Monoid              ((<>))
+import qualified Data.Text                as T
+import qualified Data.Text.Encoding       as TE
+import qualified Data.Text.Encoding.Error as Err
+import           Safe                     (atMay)
 
-import           System.Exit         (exitFailure, exitSuccess)
-import           System.IO           (Handle, IOMode (..), hClose, hGetChar,
-                                      hPutStr, openFile)
+import           System.Exit              (exitFailure, exitSuccess)
+import           System.IO                (Handle, IOMode (..), hClose,
+                                           hGetChar, hPutStr, openFile)
 
 import           System.Console.ANSI
 
 import           Score
 import           Tty
 
-{- TODO: handle this case: echo "девуш\xD0:" | selecta, need a version of GB''s
- - massage_unicode function -}
+
 {- TODO: implement soething like withTty that handles restoring tty state -}
 {- TODO: getting unweildy passing around currMatchCount and choicesToShow-}
 {- TODO: look into resource monad for ensuring tty gets closed? -}

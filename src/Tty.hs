@@ -31,7 +31,7 @@ writeLine tty maxLen (line, sgr) = do
                       SetSwapForegroundBackground True -> True
                       _ -> False
 
-    clearCurrentLine tty maxLen
+    clearCurrentLine tty
 
     if inverted
     then withInvertedColors $ writeLine' line
@@ -64,10 +64,9 @@ unsafeSize tty = do
         Just (Window h w) -> return (h, w)
         Nothing -> error "couldn't get window size"
 
-clearCurrentLine :: Handle -> Int -> IO ()
-clearCurrentLine tty winWidth = do
-    hSetCursorColumn tty 0
-    hPutStr tty $ replicate winWidth ' '
+clearCurrentLine :: Handle -> IO ()
+clearCurrentLine tty = do
+    hClearLine tty
     hSetCursorColumn tty 0
 
 ttyCommand :: String -> IO ()
