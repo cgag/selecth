@@ -1,7 +1,7 @@
 This is a port of Gary Bernhardt's [Selecta](https://github.com/garybernhardt/selecta) from Ruby to Haskell. Selecta a fuzzy text selector in the vein of CtrlP or Command-T, but is an editor independant unix tool that can filter anything from stdin.  See [Selecta's README](https://github.com/garybernhardt/selecta/blob/master/README.md) for keybindings, suggested uses, the scoring algorithm, and other info.
 
 ## Installation
-  If you're on a 64 bit processor, you can download the binary from [http://curtis.io/downloads/selecth.html](http://curtis.io/downloads/selecth.html). 
+  If you're on a 64 bit processor, you can download the binary from [http://curtis.io/downloads/selecth.html](http://curtis.io/downloads/selecth.html).   For Haskell users, it should be available on Hackage once I get upload permissions.
 
   Then just place it on your path and you're good to go. See Selecta's readme for more on how to do this if you don't know how. 
 
