@@ -1,7 +1,0 @@
-Benchmark runtimes (lower is always better):
-non-matching: 0.002895309
-matching exactly: 0.027633987
-matching broken up: 0.028266119
-overlapping matches: 0.086320468
-words, non-matching: 0.184672136
-words, matching: 0.199867617
