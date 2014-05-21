@@ -7,8 +7,7 @@ This is a port of Gary Bernhardt's [Selecta](https://github.com/garybernhardt/se
 
 ### Differences from Selecta
   - Selecth calls "stty sane" to restore your terminal from raw mode, rather than
-    setting it to its previous state.  If you keep your terminal in an insane mode
-    this could be a problem.  I don't imagine it actually will be, but fixing this is on my TODO list.
+    setting it to its previous state.  This hasn't been a problem for me, I don't imagine it will be for you, but fixing this is on my TODO list.
   - It's a native executable with no Ruby dependency. 
   - It uses relative positioning rather than always placing your cursor at the bottom of the window after use.
   - Selecth is faster (3-6x), particularly for searching thousands of lines
