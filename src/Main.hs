@@ -32,8 +32,8 @@ data KeyPress = CtrlC | CtrlN | CtrlP | CtrlW | Enter
                 | Invisible | Backspace | PlainChar Char
 
 data Search = Search
-    { query     :: String
-    , choices   :: [String]
+    { query     :: T.Text
+    , choices   :: [T.Text]
     , selection :: Int
     } deriving Show
 
@@ -44,7 +44,7 @@ data RenderedSearch = RenderedSearch
     }
 
 data Choice = Choice
-    { finalMatches :: [String]
+    { finalMatches :: [T.Text]
     , matchIndex   :: Int
     }
 
@@ -64,7 +64,7 @@ charToKeypress :: Char -> KeyPress
 charToKeypress c = fromMaybe (if isPrint c then PlainChar c else Invisible)
                              (M.lookup c specialChars)
 
-matches :: String -> [String] -> [String]
+matches :: T.Text -> [T.Text] -> [T.Text]
 matches qry chs = map fst
                   $ filter (\(_,cScore) -> cScore > 0)
                   $ sortBy (flip compare `on` snd)
@@ -72,8 +72,8 @@ matches qry chs = map fst
 
 render :: Search -> Int -> RenderedSearch
 render (Search {query=q, choices=cs, selection=selIndex}) choicesToShow =
-    let queryLine = "> " <> q
-        matched = take choicesToShow $ matches q cs
+    let queryLine = "> " <> T.unpack q
+        matched = map T.unpack . take choicesToShow $ matches q cs
         matchLines = pad matched
         renderedMatchLines = map (\(m, i) ->
                                     if i == selIndex && m /= " " -- don't highlight pad line
@@ -96,18 +96,18 @@ draw tty rendered = do
 -- TODO: Ensure handle to tty is closed?  See what GB ensures.
 {-restoreTTY :: IO ()-}
 
-dropLast :: String -> String
-dropLast = reverse . drop 1 . reverse
+dropLast :: T.Text -> T.Text
+dropLast = T.dropEnd 1
 
-dropLastWord :: String -> String
-dropLastWord = reverse . dropWhile (/=' ') . reverse
+dropLastWord :: T.Text -> T.Text
+dropLastWord = T.reverse . T.dropWhile (/= ' ') . T.reverse
 
 writeSelection :: Handle -> Choice -> Int -> IO ()
 writeSelection tty choice choicesToShow = do
     hCursorDown tty . length . take choicesToShow $ finalMatches choice
     hPutStr tty "\n"
     case finalMatches choice `atMay` matchIndex choice of
-        Just match -> putStrLn match >> exitSuccess
+        Just match -> putStrLn (T.unpack match) >> exitSuccess
         Nothing -> exitFailure
 
 handleInput :: Char -> Search -> Int -> Action
@@ -123,7 +123,7 @@ handleInput inputChar search currMatchCount =
             { query = dropLast $ query search
             , selection = 0 }
         PlainChar c -> SearchAction $ NewSearch search
-            { query = query search ++ [c]
+            { query = query search `T.append` (T.singleton c)
             , selection = 0 }
         CtrlN -> SearchAction $ NewSearch search
             { selection = min (selection search + 1)
@@ -148,7 +148,7 @@ main = do
     tty <- openFile "/dev/tty" ReadWriteMode
     configureTty tty
     contents <- B.getContents
-    let initialChoices = map T.unpack . T.lines . TE.decodeUtf8With Err.ignore $ contents
+    let initialChoices = T.lines . TE.decodeUtf8With Err.ignore $ contents
 
     (winHeight, _) <- unsafeSize tty
     let choicesToShow = min 20 (winHeight - 1)
