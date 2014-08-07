@@ -3,9 +3,9 @@ This is a port of Gary Bernhardt's [Selecta](https://github.com/garybernhardt/se
 See [Selecta's README](https://github.com/garybernhardt/selecta/blob/master/README.md) for keybindings, suggested uses, the scoring algorithm, and other info.  If you can read Ruby, you should probably go read the source as well, it's beautiful and a great example of the principles Gary teaches in his destroy all software screencasts in a real project.
 
 ## Installation
-  If you're on a 64 bit processor, you can download the binary from [http://curtis.io/downloads/selecth.html](http://curtis.io/downloads/selecth.html).   For Haskell users, it should be available on Hackage once I get upload permissions.
+  If you're on a x86_64 bit processor, you can download the binary from github: https://github.com/cgag/selecth/releases
 
-  Then just place it on your path and you're good to go. See Selecta's readme for more on how to do this if you don't know how. 
+  Then just place it on your path and you're good to go. See Selecta's readme for more on how to do this if you don't know how.
 
 ### Differences from Selecta
   - Selecth calls "stty sane" to restore your terminal from raw mode, rather than
