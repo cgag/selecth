@@ -5,15 +5,15 @@ module Score where
 import           Control.Parallel.Strategies
 import qualified Data.Text                   as T
 
--- TODO: test this properly
+-- TODO: add tests
 minMatchLength :: T.Text -> T.Text -> Int
 minMatchLength (T.uncons -> Nothing) _  =  1
 minMatchLength _ (T.uncons -> Nothing)  =  0
 minMatchLength (T.uncons -> Just (qHead, rest)) choice =
     let matchLengths =  filter (>0)
-                        $ map (\t -> endMatch rest (T.drop 1 t) 1)
-                        $ filter ((== qHead) . T.head)
-                        $ filter (not . T.null)
+                        . map (\t -> endMatch rest (T.drop 1 t) 1)
+                        . filter ((== qHead) . T.head)
+                        . filter (not . T.null)
                         $ T.tails choice
     in  if null matchLengths
         then 0
@@ -42,6 +42,5 @@ score q choice
 
 scoreAll :: T.Text -> [T.Text] -> [(T.Text, Double)]
 scoreAll query choices =
-    let lowerQuery = T.toLower query
-    in map (\choice -> (choice, score lowerQuery choice)) choices
+    map (\choice -> (choice, score (T.toLower query) choice)) choices
        `using` parListChunk 1000 rdeepseq

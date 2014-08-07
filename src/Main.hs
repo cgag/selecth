@@ -66,8 +66,8 @@ charToKeypress c = fromMaybe (if isPrint c then PlainChar c else Invisible)
 
 matches :: T.Text -> [T.Text] -> [T.Text]
 matches qry chs = map fst
-                  $ filter (\(_,cScore) -> cScore > 0)
-                  $ sortBy (flip compare `on` snd)
+                  . filter (\(_,cScore) -> cScore > 0)
+                  . sortBy (flip compare `on` snd)
                   $ scoreAll qry chs
 
 render :: Search -> Int -> RenderedSearch
@@ -123,7 +123,7 @@ handleInput inputChar search currMatchCount =
             { query = dropLast $ query search
             , selection = 0 }
         PlainChar c -> SearchAction $ NewSearch search
-            { query = query search `T.append` (T.singleton c)
+            { query = query search <> T.singleton c
             , selection = 0 }
         CtrlN -> SearchAction $ NewSearch search
             { selection = min (selection search + 1)
@@ -147,6 +147,7 @@ main :: IO ()
 main = do
     tty <- openFile "/dev/tty" ReadWriteMode
     configureTty tty
+    -- TODO: can't quit if there's nothing on stdin
     contents <- B.getContents
     let initialChoices = T.lines . TE.decodeUtf8With Err.ignore $ contents
 
