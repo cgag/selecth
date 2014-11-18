@@ -2,6 +2,9 @@
 
 module Tty where
 
+import           Data.Text                    (Text)
+import qualified Data.Text                    as T
+import           Data.Text.IO                 as T
 import           System.Exit
 import           System.IO
 import           System.Process
@@ -24,7 +27,7 @@ withCursorHidden tty action = do
     action
     hShowCursor tty
 
-writeLine :: Handle -> Int -> (String, SGR) -> IO ()
+writeLine :: Handle -> Int -> (Text, SGR) -> IO ()
 writeLine tty maxLen (line, sgr) = do
 
     let inverted = case sgr of
@@ -38,9 +41,9 @@ writeLine tty maxLen (line, sgr) = do
     else writeLine' line
 
   where
-      writeLine' :: String -> IO ()
+      writeLine' :: Text -> IO ()
       writeLine' ln = do
-          hPutStr tty (take maxLen ln)
+          T.hPutStr tty (T.take maxLen ln)
           hCursorDown tty 1
 
       withInvertedColors :: IO () -> IO ()
@@ -51,7 +54,7 @@ writeLine tty maxLen (line, sgr) = do
 
 -- TODO: resizing is nice, but how does calling size repeatedly
 -- affect performance?
-writeLines :: Handle -> [(String, SGR)] -> IO ()
+writeLines :: Handle -> [(Text, SGR)] -> IO ()
 writeLines tty lns = do
     (_, w) <- unsafeSize tty
     mapM_ (writeLine tty w) lns

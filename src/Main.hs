@@ -10,6 +10,7 @@ import qualified Data.Map                 as M
 import           Data.Maybe               (fromMaybe)
 import           Data.Monoid              ((<>))
 import qualified Data.Text                as T
+import            Data.Text                (Text)
 import qualified Data.Text.Encoding       as TE
 import qualified Data.Text.Encoding.Error as Err
 import           Safe                     (atMay)
@@ -28,6 +29,9 @@ import           Tty
 {- TODO: getting unweildy passing around currMatchCount and choicesToShow-}
 {- TODO: look into resource monad for ensuring tty gets closed? -}
 
+prompt :: T.Text
+prompt = "> "
+
 data KeyPress = CtrlC | CtrlN | CtrlP | CtrlW | Enter
                 | Invisible | Backspace | PlainChar Char
 
@@ -38,8 +42,8 @@ data Search = Search
     } deriving Show
 
 data RenderedSearch = RenderedSearch
-    { queryString   :: String
-    , renderedLines :: [(String, SGR)]
+    { queryString   :: Text
+    , renderedLines :: [(Text, SGR)]
     , matchCount    :: Int
     }
 
@@ -72,8 +76,8 @@ matches qry chs = map fst
 
 render :: Search -> Int -> RenderedSearch
 render (Search {query=q, choices=cs, selection=selIndex}) choicesToShow =
-    let queryLine = "> " <> T.unpack q
-        matched = map T.unpack . take choicesToShow $ matches q cs
+    let queryLine = prompt <> q
+        matched = take choicesToShow $ matches q cs
         matchLines = pad matched
         renderedMatchLines = map (\(m, i) ->
                                     if i == selIndex && m /= " " -- don't highlight pad line
@@ -90,7 +94,7 @@ draw :: Handle -> RenderedSearch -> IO ()
 draw tty rendered = do
     withCursorHidden tty $
         writeLines tty (renderedLines rendered)
-    hSetCursorColumn tty . length $ queryString rendered
+    hSetCursorColumn tty . T.length $ queryString rendered
 
 -- TODO: Handle exceptions, ensure tty gets restored to default settings
 -- TODO: Ensure handle to tty is closed?  See what GB ensures.
@@ -155,8 +159,10 @@ main = do
     let choicesToShow = min 20 (winHeight - 1)
 
     -- create room for choices and query line
-    replicateM_ (choicesToShow + 1) $ hPutStr tty "\n"
-    hCursorUp tty (choicesToShow + 1)
+    let linesToDraw = choicesToShow + 1
+
+    replicateM_ linesToDraw $ hPutStr tty "\n"
+    hCursorUp tty linesToDraw
 
     let initSearch = Search { query="", choices=initialChoices, selection=0 }
     draw tty $ render initSearch choicesToShow
@@ -180,4 +186,6 @@ main = do
                                   NewSearch s -> s
               let rendered = render newSearch choicesToShow
               draw tty rendered
-              eventLoop tty newSearch (matchCount rendered) choicesToShow
+              eventLoop tty newSearch
+                            (matchCount rendered)
+                            choicesToShow

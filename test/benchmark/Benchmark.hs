@@ -29,11 +29,11 @@ main = do
 
     defaultMain [
           bgroup "scoring"
-            [ bench "non-matching" $ scoreBench (T.replicate 16 "y")  cxs
-            , bench "matching exactly" $ scoreBench (T.replicate 16 "x")  cxs
-            , bench "matching broken up" $ scoreBench (T.replicate 16 "x")  cxys
+            [ bench "non-matching"        $ scoreBench (T.replicate 16 "y")  cxs
+            , bench "matching exactly"    $ scoreBench (T.replicate 16 "x")  cxs
+            , bench "matching broken up"  $ scoreBench (T.replicate 16 "x")  cxys
             , bench "overlapping matches" $ scoreBench (T.replicate 16 "x")  cxs
             , bench "words, non-matching" $ scoreBench (T.replicate 16 "x") benchWords
-            , bench "words, matching" $ scoreBench "ungovernableness" benchWords
+            , bench "words, matching"     $ scoreBench "ungovernableness" benchWords
             ]
          ]
