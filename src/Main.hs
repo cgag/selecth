@@ -9,8 +9,8 @@ import           Data.List                (sortBy)
 import qualified Data.Map                 as M
 import           Data.Maybe               (fromMaybe)
 import           Data.Monoid              ((<>))
+import           Data.Text                (Text)
 import qualified Data.Text                as T
-import            Data.Text                (Text)
 import qualified Data.Text.Encoding       as TE
 import qualified Data.Text.Encoding.Error as Err
 import           Safe                     (atMay)
@@ -25,15 +25,21 @@ import           Score
 import           Tty
 
 
-{- TODO: implement soething like withTty that handles restoring tty state -}
+{- TODO: implement something like withTty that handles restoring tty state -}
 {- TODO: getting unweildy passing around currMatchCount and choicesToShow-}
 {- TODO: look into resource monad for ensuring tty gets closed? -}
 
 prompt :: T.Text
 prompt = "> "
 
-data KeyPress = CtrlC | CtrlN | CtrlP | CtrlW | Enter
-                | Invisible | Backspace | PlainChar Char
+data KeyPress = CtrlC
+              | CtrlN
+              | CtrlP
+              | CtrlW
+              | Enter
+              | Invisible
+              | Backspace
+              | PlainChar Char
 
 data Search = Search
     { query     :: T.Text
@@ -80,7 +86,8 @@ render (Search {query=q, choices=cs, selection=selIndex}) choicesToShow =
         matched = take choicesToShow $ matches q cs
         matchLines = pad matched
         renderedMatchLines = map (\(m, i) ->
-                                    if i == selIndex && m /= " " -- don't highlight pad line
+                                    -- don't highlight pad line
+                                    if i == selIndex && m /= " "
                                     then (m, SetSwapForegroundBackground True)
                                     else (m, Reset))
                              $ zip matchLines [0..]
@@ -123,7 +130,7 @@ handleInput inputChar search currMatchCount =
                                                        (choices search)
                               , matchIndex = selection search
                               }
-        Backspace   -> SearchAction $ NewSearch search
+        Backspace -> SearchAction $ NewSearch search
             { query = dropLast $ query search
             , selection = 0 }
         PlainChar c -> SearchAction $ NewSearch search
@@ -175,11 +182,14 @@ main = do
       x <- hGetChar tty
       case handleInput x search currMatchCount of
           ExitAction eaction -> do
-            hSetCursorColumn tty 0
-            saneTty
-            case eaction of
-                Abort -> hCursorDown tty (currMatchCount + 1) >> hClose tty >> exitFailure
-                MakeChoice c -> writeSelection tty c choicesToShow >> hClose tty
+              hSetCursorColumn tty 0
+              saneTty
+              case eaction of
+                  Abort -> hCursorDown tty (currMatchCount + 1)
+                           >> hClose tty
+                           >> exitFailure
+                  MakeChoice c -> writeSelection tty c choicesToShow
+                                  >> hClose tty
           SearchAction saction -> do
               let newSearch = case saction of
                                   Ignore -> search
