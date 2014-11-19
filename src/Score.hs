@@ -27,11 +27,12 @@ minMatchLength (T.uncons -> Just (qHead, rest)) choice =
             Nothing -> 0
 
 normalizeScore :: Int -> T.Text -> T.Text -> Double
-normalizeScore matchLength query choice =
-    if matchLength > 0
-    then fromIntegral (T.length query) / fromIntegral matchLength -- penalize bigger match lengths
+normalizeScore matchLength query choice
+    | matchLength <= 0 = 0
+    | otherwise =
+          fromIntegral (T.length query)
+          / fromIntegral matchLength       -- penalize longer match lengths
           / fromIntegral (T.length choice) -- penalize longer choice strings
-    else 0
 
 score :: T.Text -> T.Text -> Double
 score q choice

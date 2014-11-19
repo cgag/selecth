@@ -11,13 +11,17 @@ import           Data.Maybe               (fromMaybe)
 import           Data.Monoid              ((<>))
 import           Data.Text                (Text)
 import qualified Data.Text                as T
+import           Data.Text.IO             as T
 import qualified Data.Text.Encoding       as TE
 import qualified Data.Text.Encoding.Error as Err
 import           Safe                     (atMay)
 
 import           System.Exit              (exitFailure, exitSuccess)
-import           System.IO                (Handle, IOMode (..), hClose,
-                                           hGetChar, hPutStr, openFile)
+import           System.IO                (Handle
+                                          , IOMode (..)
+                                          , hClose
+                                          , hGetChar
+                                          , openFile)
 
 import           System.Console.ANSI
 
@@ -82,20 +86,20 @@ matches qry chs = map fst
 
 render :: Search -> Int -> RenderedSearch
 render (Search {query=q, choices=cs, selection=selIndex}) choicesToShow =
-    let queryLine = prompt <> q
-        matched = take choicesToShow $ matches q cs
-        matchLines = pad matched
+    let queryLine  = prompt <> q
+        matched    = take choicesToShow $ matches q cs
+        matchLines = pad choicesToShow matched
         renderedMatchLines = map (\(m, i) ->
                                     -- don't highlight pad line
                                     if i == selIndex && m /= " "
                                     then (m, SetSwapForegroundBackground True)
                                     else (m, Reset))
                              $ zip matchLines [0..]
-    in RenderedSearch { queryString = queryLine
+    in RenderedSearch { queryString   = queryLine
                       , renderedLines = (queryLine, Reset) : renderedMatchLines
-                      , matchCount = length matched }
+                      , matchCount    = length matched }
   where
-    pad xs = xs ++ replicate (choicesToShow - length xs) " "
+    pad n xs = xs ++ replicate (n - length xs) " "
 
 draw :: Handle -> RenderedSearch -> IO ()
 draw tty rendered = do
@@ -116,10 +120,10 @@ dropLastWord = T.reverse . T.dropWhile (/= ' ') . T.reverse
 writeSelection :: Handle -> Choice -> Int -> IO ()
 writeSelection tty choice choicesToShow = do
     hCursorDown tty . length . take choicesToShow $ finalMatches choice
-    hPutStr tty "\n"
+    T.hPutStr tty "\n"
     case finalMatches choice `atMay` matchIndex choice of
-        Just match -> putStrLn (T.unpack match) >> exitSuccess
-        Nothing -> exitFailure
+        Just match -> T.putStrLn match
+        Nothing -> error "Failed to write selection."
 
 handleInput :: Char -> Search -> Int -> Action
 handleInput inputChar search currMatchCount =
@@ -168,7 +172,8 @@ main = do
     -- create room for choices and query line
     let linesToDraw = choicesToShow + 1
 
-    replicateM_ linesToDraw $ hPutStr tty "\n"
+    -- TODO: this should probably be in Tty module
+    replicateM_ linesToDraw $ T.hPutStr tty "\n"
     hCursorUp tty linesToDraw
 
     let initSearch = Search { query="", choices=initialChoices, selection=0 }
@@ -190,6 +195,7 @@ main = do
                            >> exitFailure
                   MakeChoice c -> writeSelection tty c choicesToShow
                                   >> hClose tty
+                                  >> exitSuccess
           SearchAction saction -> do
               let newSearch = case saction of
                                   Ignore -> search
