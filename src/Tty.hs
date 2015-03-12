@@ -63,6 +63,9 @@ ttyCommand command = do
     (_, _, _, processHandle) <- createProcess procSpec
     exitCode <- waitForProcess processHandle
     case exitCode of
-        ExitFailure code -> error $ "Failed to configure tty (Exit code: "
-                                      ++ show code ++ ")"
+        ExitFailure code -> error $ "Failed to run tty command "
+                                    ++ command
+                                    ++ "(Exit code: "
+                                    ++ show code
+                                    ++ ")"
         ExitSuccess -> return ()

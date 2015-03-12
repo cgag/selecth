@@ -7,7 +7,7 @@ import           System.IO
 import qualified Data.Text      as T
 {-import qualified Data.Text.IO   as TI-}
 
-scoreBench :: T.Text -> [T.Text] -> Pure
+scoreBench :: T.Text -> [T.Text] -> Benchmarkable
 scoreBench query = nf $ scoreAll query
 
 buildWord :: T.Text -> Int -> T.Text

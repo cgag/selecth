@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+
 import           Control.Monad
 
 import qualified Data.ByteString          as B
@@ -11,17 +12,14 @@ import           Data.Maybe               (fromMaybe)
 import           Data.Monoid              ((<>))
 import           Data.Text                (Text)
 import qualified Data.Text                as T
-import           Data.Text.IO             as T
 import qualified Data.Text.Encoding       as TE
 import qualified Data.Text.Encoding.Error as Err
+import           Data.Text.IO             as T
 import           Safe                     (atMay)
 
 import           System.Exit              (exitFailure, exitSuccess)
-import           System.IO                (Handle
-                                          , IOMode (..)
-                                          , hClose
-                                          , hGetChar
-                                          , openFile)
+import           System.IO                (Handle, IOMode (..), hClose,
+                                           hGetChar, openFile)
 
 import           System.Console.ANSI
 
@@ -50,6 +48,12 @@ data Search = Search
     , choices   :: [T.Text]
     , selection :: Int
     } deriving Show
+
+data SelecthState = SelecthState
+    { s_search            :: Search
+    , s_choicesToShow     :: Int
+    , s_currentMatchCount :: Int
+    }
 
 data RenderedSearch = RenderedSearch
     { queryString   :: Text
@@ -85,10 +89,10 @@ matches qry chs = map fst
                   $ scoreAll qry chs
 
 render :: Search -> Int -> RenderedSearch
-render (Search {query=q, choices=cs, selection=selIndex}) choicesToShow =
+render (Search {query=q, choices=cs, selection=selIndex}) csToShow =
     let queryLine  = prompt <> q
-        matched    = take choicesToShow $ matches q cs
-        matchLines = pad choicesToShow matched
+        matched    = take csToShow (matches q cs)
+        matchLines = pad csToShow matched
         renderedMatchLines = map (\(m, i) ->
                                     -- don't highlight pad line
                                     if i == selIndex && m /= " "
@@ -118,8 +122,8 @@ dropLastWord :: T.Text -> T.Text
 dropLastWord = T.reverse . T.dropWhile (/= ' ') . T.reverse
 
 writeSelection :: Handle -> Choice -> Int -> IO ()
-writeSelection tty choice choicesToShow = do
-    hCursorDown tty . length . take choicesToShow $ finalMatches choice
+writeSelection tty choice csToShow = do
+    hCursorDown tty . length . take csToShow $ finalMatches choice
     T.hPutStr tty "\n"
     case finalMatches choice `atMay` matchIndex choice of
         Just match -> T.putStrLn match
@@ -150,18 +154,11 @@ handleInput inputChar search currMatchCount =
             , selection = 0 }
         Invisible -> SearchAction Ignore
 
-{-withTty :: (Handle -> IO ()) -> IO ()-}
-{-withTty f = do -}
-    {-tty <- openFile "/dev/tty" ReadWriteMode-}
-    {-configureTty tty-}
-    {-f tty-}
-    {-saneTty-}
-
-
 main :: IO ()
 main = do
     tty <- openFile "/dev/tty" ReadWriteMode
     configureTty tty
+
     -- TODO: can't quit if there's nothing on stdin
     contents <- B.getContents
     let initialChoices = T.lines . TE.decodeUtf8With Err.ignore $ contents
@@ -179,13 +176,15 @@ main = do
     let initSearch = Search { query="", choices=initialChoices, selection=0 }
     draw tty $ render initSearch choicesToShow
 
-    eventLoop tty initSearch choicesToShow choicesToShow
+    eventLoop tty (SelecthState { s_search = initSearch
+                                , s_currentMatchCount = choicesToShow
+                                , s_choicesToShow = choicesToShow})
 
   where
-    eventLoop :: Handle -> Search -> Int -> Int -> IO ()
-    eventLoop tty search currMatchCount choicesToShow = do
+    eventLoop :: Handle -> SelecthState -> IO ()
+    eventLoop tty (SelecthState srch csToShow currMatchCount) = do
       x <- hGetChar tty
-      case handleInput x search currMatchCount of
+      case handleInput x srch currMatchCount of
           ExitAction eaction -> do
               hSetCursorColumn tty 0
               saneTty
@@ -193,15 +192,15 @@ main = do
                   Abort -> hCursorDown tty (currMatchCount + 1)
                            >> hClose tty
                            >> exitFailure
-                  MakeChoice c -> writeSelection tty c choicesToShow
+                  MakeChoice c -> writeSelection tty c csToShow
                                   >> hClose tty
                                   >> exitSuccess
           SearchAction saction -> do
               let newSearch = case saction of
-                                  Ignore -> search
+                                  Ignore -> srch
                                   NewSearch s -> s
-              let rendered = render newSearch choicesToShow
+              let rendered = render newSearch csToShow
               draw tty rendered
-              eventLoop tty newSearch
-                            (matchCount rendered)
-                            choicesToShow
+              eventLoop tty (SelecthState newSearch
+                                          (matchCount rendered)
+                                          csToShow)
