@@ -202,5 +202,5 @@ main = do
                   rendered = render newSearch csToShow
               draw tty rendered
               eventLoop tty (SelecthState newSearch
-                                          (matchCount rendered)
-                                          csToShow)
+                                          csToShow
+                                          (matchCount rendered))
