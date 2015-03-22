@@ -7,7 +7,7 @@ import qualified Data.ByteString          as B
 import           Data.Char                (isPrint)
 import           Data.Function            (on)
 import           Data.List                (sortBy)
-import qualified Data.Map                 as M
+import qualified Data.Map.Strict          as M
 import           Data.Maybe               (fromMaybe)
 import           Data.Monoid              ((<>))
 import           Data.Text                (Text)
@@ -31,7 +31,7 @@ import           Tty
 {- TODO: getting unweildy passing around currMatchCount and choicesToShow-}
 {- TODO: look into resource monad for ensuring tty gets closed? -}
 
-prompt :: T.Text
+prompt :: Text
 prompt = "> "
 
 data KeyPress = CtrlC
@@ -44,26 +44,26 @@ data KeyPress = CtrlC
               | PlainChar Char
 
 data Search = Search
-    { query     :: T.Text
-    , choices   :: [T.Text]
-    , selection :: Int
+    { query     :: !Text
+    , choices   :: ![Text]
+    , selection :: !Int
     } deriving Show
 
 data SelecthState = SelecthState
-    { s_search            :: Search
-    , s_choicesToShow     :: Int
-    , s_currentMatchCount :: Int
+    { s_search            :: !Search
+    , s_choicesToShow     :: !Int
+    , s_currentMatchCount :: !Int
     } deriving Show
 
 data RenderedSearch = RenderedSearch
-    { queryString   :: Text
-    , renderedLines :: [(Text, SGR)]
-    , matchCount    :: Int
+    { queryString   :: !Text
+    , renderedLines :: ![(Text, SGR)]
+    , matchCount    :: !Int
     }
 
 data Choice = Choice
-    { finalMatches :: [T.Text]
-    , matchIndex   :: Int
+    { finalMatches :: ![Text]
+    , matchIndex   :: !Int
     }
 
 data Action       = SearchAction SearchAction | ExitAction ExitAction
@@ -83,10 +83,10 @@ charToKeypress :: Char -> KeyPress
 charToKeypress c = fromMaybe (if isPrint c then PlainChar c else Invisible)
                              (M.lookup c specialChars)
 
-matches :: T.Text -> [T.Text] -> [T.Text]
+matches :: Text -> [Text] -> [Text]
 matches qry chs = map fst
-                  . filter (\(_,cScore) -> cScore > 0)
                   . sortBy (flip compare `on` snd)
+                  . filter (\(_,cScore) -> cScore > 0)
                   $ scoreAll qry chs
 
 render :: Search -> Int -> RenderedSearch
@@ -116,10 +116,10 @@ draw tty rendered = do
 -- TODO: Ensure handle to tty is closed?  See what GB ensures.
 {-restoreTTY :: IO ()-}
 
-dropLast :: T.Text -> T.Text
+dropLast :: Text -> Text
 dropLast = T.dropEnd 1
 
-dropLastWord :: T.Text -> T.Text
+dropLastWord :: Text -> Text
 dropLastWord = T.reverse . T.dropWhile (/= ' ') . T.reverse
 
 writeSelection :: Handle -> Choice -> Int -> IO ()
