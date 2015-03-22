@@ -36,6 +36,8 @@ writeLine tty maxLen (line, sgr) = do
 
 -- TODO: resizing is nice, but how does calling size repeatedly
 -- affect performance?
+-- TODO: Can we combine them to a single large string and
+-- only write once?
 writeLines :: Handle -> [(Text, SGR)] -> IO ()
 writeLines tty lns = do
     (_, w) <- unsafeSize tty

@@ -76,7 +76,8 @@ specialChars = M.fromList [ ('\ETX', CtrlC)
                           , ('\DEL', Backspace)
                           , ('\SO',  CtrlN)
                           , ('\DLE', CtrlP)
-                          , ('\ETB', CtrlW)]
+                          , ('\ETB', CtrlW)
+                          ]
 
 charToKeypress :: Char -> KeyPress
 charToKeypress c = fromMaybe (if isPrint c then PlainChar c else Invisible)
@@ -176,10 +177,9 @@ main = do
     let initSearch = Search { query="", choices=initialChoices, selection=0 }
     draw tty $ render initSearch choicesToShow
 
-    eventLoop tty (SelecthState { s_search = initSearch
-                                , s_currentMatchCount = choicesToShow
-                                , s_choicesToShow = choicesToShow})
-
+    eventLoop tty SelecthState { s_search = initSearch
+                               , s_currentMatchCount = choicesToShow
+                               , s_choicesToShow = choicesToShow}
   where
     eventLoop :: Handle -> SelecthState -> IO ()
     eventLoop tty (SelecthState srch csToShow currMatchCount) = do
@@ -199,7 +199,7 @@ main = do
               let newSearch = case saction of
                                   Ignore -> srch
                                   NewSearch s -> s
-              let rendered = render newSearch csToShow
+                  rendered = render newSearch csToShow
               draw tty rendered
               eventLoop tty (SelecthState newSearch
                                           (matchCount rendered)
