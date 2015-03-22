@@ -53,7 +53,7 @@ data SelecthState = SelecthState
     { s_search            :: Search
     , s_choicesToShow     :: Int
     , s_currentMatchCount :: Int
-    }
+    } deriving Show
 
 data RenderedSearch = RenderedSearch
     { queryString   :: Text
@@ -146,10 +146,9 @@ handleInput inputChar search currMatchCount =
             { query = query search <> T.singleton c
             , selection = 0 }
         CtrlN -> SearchAction $ NewSearch search
-            { selection = min (selection search + 1)
-                              (currMatchCount - 1) }
+            { selection = mod (selection search + 1) currMatchCount }
         CtrlP -> SearchAction $ NewSearch search
-            { selection = max (selection search - 1) 0 }
+            { selection = mod (selection search - 1) currMatchCount }
         CtrlW -> SearchAction $ NewSearch search
             { query = dropLastWord (query search)
             , selection = 0 }
@@ -175,10 +174,11 @@ main = do
     hCursorUp tty linesToDraw
 
     let initSearch = Search { query="", choices=initialChoices, selection=0 }
-    draw tty $ render initSearch choicesToShow
+        rendered = render initSearch choicesToShow
+    draw tty rendered
 
     eventLoop tty SelecthState { s_search = initSearch
-                               , s_currentMatchCount = choicesToShow
+                               , s_currentMatchCount = matchCount rendered
                                , s_choicesToShow = choicesToShow}
   where
     eventLoop :: Handle -> SelecthState -> IO ()
