@@ -166,12 +166,12 @@ main = do
     tty <- openFile "/dev/tty" ReadWriteMode
     configureTty tty
 
+    (winHeight, _) <- unsafeSize tty
+    let choicesToShow = min 20 (winHeight - 1)
+
     -- TODO: can't quit if there's nothing on stdin
     contents <- B.getContents
     let initialChoices = V.fromList . T.lines . TE.decodeUtf8With Err.ignore $ contents
-
-    (winHeight, _) <- unsafeSize tty
-    let choicesToShow = min 20 (winHeight - 1)
 
     -- create room for choices and query line
     let linesToDraw = choicesToShow + 1
