@@ -2,9 +2,11 @@
 
 module Score where
 
-import           Control.Parallel.Strategies
+-- import           Control.Parallel.Strategies
 import Data.Text (Text)
 import qualified Data.Text                   as T
+import Data.Vector (Vector)
+import qualified Data.Vector as V
 
 -- TODO: add tests
 minMatchLength :: Text -> Text -> Int
@@ -42,7 +44,7 @@ score q choice
     | otherwise = let minLength = minMatchLength q (T.toLower choice)
                   in normalizeScore minLength q choice
 
-scoreAll :: Text -> [Text] -> [(Text, Double)]
+scoreAll :: Text -> Vector Text -> Vector (Text, Double)
 scoreAll query choices =
-    map (\choice -> (choice, score (T.toLower query) choice)) choices
-       `using` parListChunk 1000 rdeepseq
+    V.map (\choice -> (choice, score (T.toLower query) choice)) choices
+       -- `using` parListChunk 1000 rdeepseq

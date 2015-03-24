@@ -4,6 +4,8 @@ module Tty where
 
 import           Data.Text                    (Text)
 import qualified Data.Text                    as T
+import Data.Vector (Vector)
+import qualified Data.Vector as V
 import           Data.Text.IO                 as T
 import           System.Exit
 import           System.IO
@@ -38,11 +40,11 @@ writeLine tty maxLen (line, sgr) = do
 -- affect performance?
 -- TODO: Can we combine them to a single large string and
 -- only write once?
-writeLines :: Handle -> [(Text, SGR)] -> IO ()
+writeLines :: Handle -> Vector (Text, SGR) -> IO ()
 writeLines tty lns = do
     (_, w) <- unsafeSize tty
-    mapM_ (writeLine tty w) lns
-    hCursorUp tty (length lns)
+    V.mapM_ (writeLine tty w) lns
+    hCursorUp tty (V.length lns)
 
 unsafeSize :: Handle -> IO (Int, Int)
 unsafeSize tty = do

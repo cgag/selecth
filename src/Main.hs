@@ -2,11 +2,12 @@
 
 
 import           Control.Monad
+import           Control.Monad.ST
 
 import qualified Data.ByteString          as B
 import           Data.Char                (isPrint)
 import           Data.Function            (on)
-import           Data.List                (sortBy)
+-- import           Data.List                (sortBy)
 import qualified Data.Map.Strict          as M
 import           Data.Maybe               (fromMaybe)
 import           Data.Monoid              ((<>))
@@ -15,7 +16,10 @@ import qualified Data.Text                as T
 import qualified Data.Text.Encoding       as TE
 import qualified Data.Text.Encoding.Error as Err
 import           Data.Text.IO             as T
-import           Safe                     (atMay)
+-- import           Safe                     (atMay)
+import Data.Vector (Vector)
+import qualified Data.Vector as V
+import qualified Data.Vector.Algorithms.Intro as VI
 
 import           System.Exit              (exitFailure, exitSuccess)
 import           System.IO                (Handle, IOMode (..), hClose,
@@ -45,7 +49,7 @@ data KeyPress = CtrlC
 
 data Search = Search
     { query     :: !Text
-    , choices   :: ![Text]
+    , choices   :: !(Vector Text)
     , selection :: !Int
     } deriving Show
 
@@ -57,12 +61,12 @@ data SelecthState = SelecthState
 
 data RenderedSearch = RenderedSearch
     { queryString   :: !Text
-    , renderedLines :: ![(Text, SGR)]
+    , renderedLines :: !(Vector (Text, SGR))
     , matchCount    :: !Int
     }
 
 data Choice = Choice
-    { finalMatches :: ![Text]
+    { finalMatches :: !(Vector Text)
     , matchIndex   :: !Int
     }
 
@@ -83,28 +87,32 @@ charToKeypress :: Char -> KeyPress
 charToKeypress c = fromMaybe (if isPrint c then PlainChar c else Invisible)
                              (M.lookup c specialChars)
 
-matches :: Text -> [Text] -> [Text]
-matches qry chs = map fst
-                  . sortBy (flip compare `on` snd)
-                  . filter (\(_,cScore) -> cScore > 0)
+matches :: Text -> Vector Text -> Vector Text
+matches qry chs = V.map fst
+                  . (\v -> runST $ do
+                      vec <- V.thaw v
+                      VI.sortBy (flip compare `on` snd) vec
+                      V.freeze vec)
+                  . V.filter (\(_,cScore) -> cScore > 0)
                   $ scoreAll qry chs
 
 render :: Search -> Int -> RenderedSearch
 render (Search {query=q, choices=cs, selection=selIndex}) csToShow =
     let queryLine  = prompt <> q
-        matched    = take csToShow (matches q cs)
+        matched    = V.take csToShow (matches q cs)
         matchLines = pad csToShow matched
-        renderedMatchLines = map (\(m, i) ->
-                                    -- don't highlight pad line
-                                    if i == selIndex && m /= " "
-                                    then (m, SetSwapForegroundBackground True)
-                                    else (m, Reset))
-                             $ zip matchLines [0..]
+        renderedMatchLines = (\v ->
+                                V.update
+                                  v
+                                  (V.singleton (selIndex, (fst (v V.! selIndex), SetSwapForegroundBackground True)))
+                                  )
+                             . V.map (\m -> (m, Reset))
+                             $ matchLines
     in RenderedSearch { queryString   = queryLine
-                      , renderedLines = (queryLine, Reset) : renderedMatchLines
-                      , matchCount    = length matched }
+                      , renderedLines = (queryLine, Reset) `V.cons` renderedMatchLines
+                      , matchCount    = V.length matched }
   where
-    pad n xs = xs ++ replicate (n - length xs) " "
+    pad n xs = xs <> V.replicate (n - V.length xs) " "
 
 draw :: Handle -> RenderedSearch -> IO ()
 draw tty rendered = do
@@ -124,9 +132,9 @@ dropLastWord = T.reverse . T.dropWhile (/= ' ') . T.reverse
 
 writeSelection :: Handle -> Choice -> Int -> IO ()
 writeSelection tty choice csToShow = do
-    hCursorDown tty . length . take csToShow $ finalMatches choice
+    hCursorDown tty . V.length . V.take csToShow $ finalMatches choice
     T.hPutStr tty "\n"
-    case finalMatches choice `atMay` matchIndex choice of
+    case finalMatches choice V.!? matchIndex choice of
         Just match -> T.putStrLn match
         Nothing -> error "Failed to write selection."
 
@@ -161,7 +169,7 @@ main = do
 
     -- TODO: can't quit if there's nothing on stdin
     contents <- B.getContents
-    let initialChoices = T.lines . TE.decodeUtf8With Err.ignore $ contents
+    let initialChoices = V.fromList . T.lines . TE.decodeUtf8With Err.ignore $ contents
 
     (winHeight, _) <- unsafeSize tty
     let choicesToShow = min 20 (winHeight - 1)

@@ -5,27 +5,31 @@ import           Score
 import           System.IO
 
 import qualified Data.Text      as T
+import Data.Text (Text)
+import Data.Vector (Vector)
+import qualified Data.Vector as V
+
 {-import qualified Data.Text.IO   as TI-}
 
-scoreBench :: T.Text -> [T.Text] -> Benchmarkable
+scoreBench :: Text -> Vector Text -> Benchmarkable
 scoreBench query = nf $ scoreAll query
 
-buildWord :: T.Text -> Int -> T.Text
+buildWord :: Text -> Int -> Text
 buildWord base baseReps = T.replicate baseReps base
 
-buildChoices :: T.Text -> Int -> Int -> [T.Text]
+buildChoices :: Text -> Int -> Int -> Vector Text
 buildChoices base baseReps totalChoices =
-    replicate totalChoices $ buildWord base baseReps
+    V.replicate totalChoices $ buildWord base baseReps
 
 main :: IO ()
 main = do
     contents <- openFile "test/benchmark/words" ReadMode >>= hGetContents
-    let benchWords = map T.pack (read contents :: [String])
+    let benchWords = V.fromList (map T.pack (read contents :: [String]))
     let cxs  =  buildChoices "x"  16 2000
     let cxys =  buildChoices "xy" 16 2000
 
     -- force eval?
-    print (last benchWords)
+    print (V.last benchWords)
 
     defaultMain [
           bgroup "scoring"
