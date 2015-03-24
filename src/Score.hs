@@ -3,6 +3,8 @@
 module Score where
 
 -- import           Control.Parallel.Strategies
+import Data.Vector.Strategies
+import GHC.Conc (numCapabilities)
 import Data.Text (Text)
 import qualified Data.Text                   as T
 import Data.Vector (Vector)
@@ -47,4 +49,4 @@ score q choice
 scoreAll :: Text -> Vector Text -> Vector (Text, Double)
 scoreAll query choices =
     V.map (\choice -> (choice, score (T.toLower query) choice)) choices
-       -- `using` parListChunk 1000 rdeepseq
+       `using` parVector (V.length choices `div` numCapabilities)

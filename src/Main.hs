@@ -1,29 +1,28 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-
 import           Control.Monad
 import           Control.Monad.ST
 
-import qualified Data.ByteString          as B
-import           Data.Char                (isPrint)
-import           Data.Function            (on)
+import qualified Data.ByteString              as B
+import           Data.Char                    (isPrint)
+import           Data.Function                (on)
 -- import           Data.List                (sortBy)
-import qualified Data.Map.Strict          as M
-import           Data.Maybe               (fromMaybe)
-import           Data.Monoid              ((<>))
-import           Data.Text                (Text)
-import qualified Data.Text                as T
-import qualified Data.Text.Encoding       as TE
-import qualified Data.Text.Encoding.Error as Err
-import           Data.Text.IO             as T
+import qualified Data.Map.Strict              as M
+import           Data.Maybe                   (fromMaybe)
+import           Data.Monoid                  ((<>))
+import           Data.Text                    (Text)
+import qualified Data.Text                    as T
+import qualified Data.Text.Encoding           as TE
+import qualified Data.Text.Encoding.Error     as Err
+import           Data.Text.IO                 as T
 -- import           Safe                     (atMay)
-import Data.Vector (Vector)
-import qualified Data.Vector as V
+import           Data.Vector                  (Vector)
+import qualified Data.Vector                  as V
 import qualified Data.Vector.Algorithms.Intro as VI
 
-import           System.Exit              (exitFailure, exitSuccess)
-import           System.IO                (Handle, IOMode (..), hClose,
-                                           hGetChar, openFile)
+import           System.Exit                  (exitFailure, exitSuccess)
+import           System.IO                    (Handle, IOMode (..), hClose,
+                                               hGetChar, openFile)
 
 import           System.Console.ANSI
 
