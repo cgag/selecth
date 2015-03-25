@@ -2,6 +2,8 @@
 
 module Score where
 
+import Control.Parallel.Strategies
+import Data.Vector.Strategies
 import Data.Text (Text)
 import qualified Data.Text                   as T
 import Data.Vector (Vector)

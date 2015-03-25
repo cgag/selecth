@@ -24,7 +24,9 @@ buildChoices base baseReps totalChoices =
 main :: IO ()
 main = do
     contents <- openFile "test/benchmark/words" ReadMode >>= hGetContents
+    manyContents <- openFile "test/benchmark/manyWords" ReadMode >>= hGetContents
     let benchWords = V.fromList (map T.pack (read contents :: [String]))
+    let moreWords = V.fromList (map T.pack (read manyContents :: [String]))
     let cxs  =  buildChoices "x"  16 2000
     let cxys =  buildChoices "xy" 16 2000
 
@@ -39,5 +41,7 @@ main = do
             , bench "overlapping matches" $ scoreBench (T.replicate 16 "x")  cxs
             , bench "words, non-matching" $ scoreBench (T.replicate 16 "x") benchWords
             , bench "words, matching"     $ scoreBench "ungovernableness" benchWords
+            , bench "words, non-matching" $ scoreBench (T.replicate 16 "x") moreWords
+            , bench "words, matching"     $ scoreBench "ungovernableness" moreWords
             ]
          ]
