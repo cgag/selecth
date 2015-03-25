@@ -88,29 +88,33 @@ charToKeypress c = fromMaybe (if isPrint c then PlainChar c else Invisible)
 
 matches :: Text -> Vector Text -> Vector Text
 matches qry chs = V.map fst
-                  . (\v -> runST $ do
-                      vec <- V.thaw v
-                      VI.sortBy (flip compare `on` snd) vec
-                      V.freeze vec)
+                  . sortImmutableVec (flip compare `on` snd)
                   . V.filter (\(_,cScore) -> cScore > 0)
                   $ scoreAll qry chs
+  where
+    sortImmutableVec f v = runST $ do
+                              vec <- V.thaw v
+                              VI.sortBy f vec
+                              V.freeze vec
 
 render :: Search -> Int -> RenderedSearch
 render (Search {query=q, choices=cs, selection=selIndex}) csToShow =
-    let queryLine  = prompt <> q
-        matched    = V.take csToShow (matches q cs)
-        matchLines = pad csToShow matched
-        renderedMatchLines = (\v ->
-                                V.update
-                                  v
-                                  (V.singleton (selIndex, (fst (v V.! selIndex), SetSwapForegroundBackground True)))
-                                  )
-                             . V.map (\m -> (m, Reset))
-                             $ matchLines
-    in RenderedSearch { queryString   = queryLine
-                      , renderedLines = (queryLine, Reset) `V.cons` renderedMatchLines
-                      , matchCount    = V.length matched }
+    RenderedSearch { queryString   = queryLine
+                   , renderedLines = V.cons (queryLine, Reset)
+                                            renderedMatchLines
+                   , matchCount    = V.length matched }
   where
+    renderedMatchLines = swapBackground selIndex
+                           . V.map (\m -> (m, Reset))
+                           $ matchLines
+    matched    = V.take csToShow (matches q cs)
+    matchLines = pad csToShow matched
+    queryLine  = prompt <> q
+    swapBackground i vec =
+      V.update
+          vec
+          (V.singleton
+              (selIndex, (fst (vec V.! i), SetSwapForegroundBackground True)))
     pad n xs = xs <> V.replicate (n - V.length xs) " "
 
 draw :: Handle -> RenderedSearch -> IO ()
