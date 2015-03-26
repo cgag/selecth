@@ -27,9 +27,12 @@ import           System.Console.ANSI
 import           Score
 import           Tty
 
+import Debug.Trace
+
 {- TODO: implement something like withTty that handles restoring tty state -}
 {- TODO: getting unweildy passing around currMatchCount and choicesToShow-}
 {- TODO: look into resource monad for ensuring tty gets closed? -}
+{- TODO: state monad? passing around matches and memo tables is cumbersome -}
 
 prompt :: Text
 prompt = "> "
@@ -38,29 +41,34 @@ data KeyPress = CtrlC
               | CtrlN
               | CtrlP
               | CtrlW
+              | CtrlH
+              | CtrlU
               | Enter
               | Invisible
               | Backspace
               | PlainChar Char
 
+type Memo = M.Map Text (Vector Text)
+
 data Search = Search
     { query     :: !Text
     , choices   :: !(Vector Text)
     , selection :: !Int
+    , matches   :: !(Vector Text)
     } deriving Show
 
 data SelecthState = SelecthState
     { s_search            :: !Search
     , s_choicesToShow     :: !Int
     , s_currentMatchCount :: !Int
-    , s_scoreMemo :: M.Map Text (Vector Text)
+    , s_scoreMemo :: Memo
     } deriving Show
 
 data RenderedSearch = RenderedSearch
     { queryString   :: !Text
     , renderedLines :: !(Vector (Text, SGR))
     , matchCount    :: !Int
-    }
+    } deriving Show
 
 data Choice = Choice
     { finalMatches :: !(Vector Text)
@@ -68,13 +76,24 @@ data Choice = Choice
     }
 
 data Action       = SearchAction SearchAction | ExitAction ExitAction
-data SearchAction = NewSearch Search | Ignore
-data ExitAction   = Abort | MakeChoice Choice
+
+data SearchAction = Extend Text
+                  | DropWord
+                  | DropChar
+                  | Clear
+                  | SelectUp
+                  | SelectDown
+                  | Ignore
+
+data ExitAction   = Abort
+                  | MakeChoice Search
 
 specialChars :: M.Map Char KeyPress
 specialChars = M.fromList [ ('\ETX', CtrlC)
                           , ('\r',   Enter)
                           , ('\DEL', Backspace)
+                          , ('\BS',  CtrlH)
+                          , ('\NAK',  CtrlU)
                           , ('\SO',  CtrlN)
                           , ('\DLE', CtrlP)
                           , ('\ETB', CtrlW)
@@ -84,19 +103,36 @@ charToKeypress :: Char -> KeyPress
 charToKeypress c = fromMaybe (if isPrint c then PlainChar c else Invisible)
                              (M.lookup c specialChars)
 
-matches :: Text -> Vector Text -> Vector Text
-matches qry chs = V.map fst
-                  . sortImmutableVec (flip compare `on` snd)
-                  . V.filter (\(_,cScore) -> cScore > 0)
-                  $ scoreAll qry chs
+findMatches :: Memo -> Text -> Vector Text -> (Vector Text, Memo)
+findMatches memo qry chs =
+    case M.lookup qry memo of
+       Just mtchs -> trace "Cache hit" (mtchs, memo)
+       Nothing -> trace "Cache miss" (getMatches qry chs
+                                     , memo)
+                                     -- M.insert qry (getMatches qry chs) memo)
   where
+    getMatches q cs = V.map fst
+                        . sortImmutableVec (flip compare `on` snd)
+                        . V.filter (\(_,cScore) -> cScore > 0)
+                        $ scoreAll q cs
+
     sortImmutableVec f v = runST $ do
                               vec <- V.thaw v
                               VI.sortBy f vec
                               V.freeze vec
 
-render :: Search -> Int -> Vector Text -> RenderedSearch
-render (Search {query=q, selection=selIndex}) csToShow matched =
+  -- memo' = case M.lookup (query newSearch) memo of
+  --           Just _  -> memo
+  --           Nothing -> M.insert (query newSearch)
+  --                               (findMatches (query newSearch)
+  --                                            (matches srch))
+  --                               memo
+  -- matched = fromMaybe (error "Memoization is broken")
+  --                     (M.lookup (query newSearch) memo')
+  -- newSearch' = newSearch { matches = matched }
+
+render :: Search -> Int -> RenderedSearch
+render (Search {query=q, matches=matched, selection=selIndex}) csToShow =
     RenderedSearch { queryString   = queryLine
                    , renderedLines = V.cons (queryLine, Reset)
                                             renderedMatchLines
@@ -131,37 +167,72 @@ dropLast = T.dropEnd 1
 dropLastWord :: Text -> Text
 dropLastWord = T.reverse . T.dropWhile (/= ' ') . T.reverse
 
-writeSelection :: Handle -> Choice -> Int -> IO ()
-writeSelection tty choice csToShow = do
-    hCursorDown tty . V.length . V.take csToShow $ finalMatches choice
+writeSelection :: Handle -> Search -> Int -> IO ()
+writeSelection tty (Search {matches=matches', selection=sel}) csToShow = do
+    hCursorDown tty . V.length . V.take csToShow $ matches'
     T.hPutStr tty "\n"
-    case finalMatches choice V.!? matchIndex choice of
+    case matches' V.!? sel of
         Just match -> T.putStrLn match
         Nothing -> error "Failed to write selection."
 
-handleInput :: Char -> Search -> Int -> Action
-handleInput inputChar search choicesToShow =
+handleInput :: Char -> Search -> Action
+handleInput inputChar search =
     case charToKeypress inputChar of
-        CtrlC -> ExitAction Abort
-        Enter -> ExitAction $ MakeChoice Choice {
-                                finalMatches = findMatches (query search)
-                                                           (choices search)
-                              , matchIndex = selection search
-                              }
-        Backspace -> SearchAction $ NewSearch search
-            { query = dropLast $ query search
-            , selection = 0 }
-        PlainChar c -> SearchAction $ NewSearch search
-            { query = query search <> T.singleton c
-            , selection = 0 }
-        CtrlN -> SearchAction $ NewSearch search
-            { selection = mod (selection search + 1) choicesToShow }
-        CtrlP -> SearchAction $ NewSearch search
-            { selection = mod (selection search - 1) choicesToShow}
-        CtrlW -> SearchAction $ NewSearch search
-            { query = dropLastWord (query search)
-            , selection = 0 }
+        Enter -> ExitAction (MakeChoice search)
+        CtrlC     -> ExitAction Abort
+        CtrlN     -> SearchAction SelectDown
+        CtrlP     -> SearchAction SelectUp
+        CtrlU     -> SearchAction Clear
+        CtrlW     -> SearchAction DropWord
+        CtrlH     -> SearchAction DropChar
+        Backspace -> SearchAction DropChar
         Invisible -> SearchAction Ignore
+        PlainChar c -> SearchAction $ Extend (T.singleton c)
+
+        -- CtrlC -> ExitAction Abort
+        -- Enter -> ExitAction $ MakeChoice Choice {
+        --                         finalMatches = findMatches (query search)
+        --                                                    (choices search)
+        --                       , matchIndex = selection search
+        --                       }
+        -- Backspace -> SearchAction $ NewSearch search
+        --     { query = dropLast $ query search
+        --     , selection = 0 }
+        -- PlainChar c -> SearchAction $ NewSearch search
+        --     { query = query search <> T.singleton c
+        --     , selection = 0 }
+        -- CtrlN -> SearchAction $ NewSearch search
+        --     { selection = mod (selection search + 1) choicesToShow }
+        -- CtrlP -> SearchAction $ NewSearch search
+        --     { selection = mod (selection search - 1) choicesToShow}
+        -- -- CtrlW -> SearchAction $ NewSearch search
+        -- --     { query = dropLastWord (query search)
+        -- --     , selection = 0 }
+        -- Invisible -> SearchAction Ignore
+
+buildSearch ::SearchAction -> Search -> Int -> Memo -> (Search, Memo)
+buildSearch action search choicesToShow memo =
+    case action of
+        Extend qAddition -> (search', memo')
+          where
+            search' = search { query   = q'
+                             , matches = matches'
+                             , selection = 0 }
+            q' = query search <> qAddition
+            (matches', memo') = findMatches memo q' (choices search)
+        DropWord -> (search { query = dropLastWord (query search)
+                            , selection = 0}
+                    , memo)
+        DropChar -> (search { query = dropLast (query search)
+                            , selection = 0}
+                    , memo)
+        Clear -> (search { query = "", selection = 0 }, memo)
+        SelectDown -> ( search { selection = mod (selection search + 1) choicesToShow }
+                      , memo)
+        SelectUp -> (search { selection = mod (selection search - 1) choicesToShow}
+                    , memo)
+        Ignore -> undefined
+
 
 main :: IO ()
 main = do
@@ -182,19 +253,27 @@ main = do
     replicateM_ linesToDraw $ T.hPutStr tty "\n"
     hCursorUp tty linesToDraw
 
-    let initSearch = Search { query="", choices=initialChoices, selection=0 }
-        rendered = render initSearch choicesToShow (matches "" initialChoices)
+    let (initMatches, initMemo) = (findMatches M.empty "" initialChoices)
+    T.putStrLn "Out of find matches"
+    let initSearch = Search { query=""
+                            , choices=initialChoices
+                            , selection=0
+                            , matches=initMatches
+                            }
+
+    let rendered = render initSearch choicesToShow
     draw tty rendered
 
     eventLoop tty SelecthState { s_search = initSearch
                                , s_currentMatchCount = matchCount rendered
                                , s_choicesToShow = choicesToShow
-                               , s_scoreMemo = M.empty}
-  where
+                               , s_scoreMemo = initMemo
+                               }
+ where
     eventLoop :: Handle -> SelecthState -> IO ()
     eventLoop tty (SelecthState srch csToShow currMatchCount memo) = do
       x <- hGetChar tty
-      case handleInput x srch csToShow of
+      case handleInput x srch of
           ExitAction eaction -> do
               hSetCursorColumn tty 0
               saneTty
@@ -206,20 +285,9 @@ main = do
                                   >> hClose tty
                                   >> exitSuccess
           SearchAction saction -> do
-              let newSearch = case saction of
-                                  Ignore -> srch
-                                  NewSearch s -> s
-                  memo' = case M.lookup (query newSearch) memo of
-                            Just _  -> memo
-                            Nothing -> M.insert (query newSearch)
-                                                (matches (query newSearch)
-                                                         (choices newSearch))
-                                                memo
-                  matched = fromMaybe (error "Memoization is broken")
-                                      (M.lookup (query newSearch) memo')
-                  rendered = render newSearch csToShow matched
-              draw tty rendered
-              eventLoop tty (SelecthState newSearch
+              let (search', memo') = buildSearch saction srch csToShow memo
+              draw tty (render search' csToShow)
+              eventLoop tty (SelecthState search'
                                           csToShow
-                                          (matchCount rendered)
+                                          (V.length $ matches search')
                                           memo')
