@@ -8,7 +8,6 @@ import Data.Text (Text)
 import qualified Data.Text                   as T
 import Data.Vector (Vector)
 import qualified Data.Vector as V
-import qualified Data.Map.Strict as M
 
 -- TODO: add tests
 
