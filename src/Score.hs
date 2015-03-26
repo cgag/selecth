@@ -3,7 +3,6 @@
 module Score where
 
 import Control.Parallel.Strategies
-import Data.Vector.Strategies
 import Data.Text (Text)
 import qualified Data.Text                   as T
 import Data.Vector (Vector)
@@ -19,6 +18,9 @@ normalizeScore matchLength query choice
           / fromIntegral matchLength       -- penalize longer match lengths
           / fromIntegral (T.length choice) -- penalize longer choice strings
 
+
+-- TODO: matchlenghts could probably be a fold over the chars
+-- instead of using tails
 score :: Text -> Text -> Double
 score q choice
     | T.null q      = 1
@@ -47,7 +49,17 @@ score q choice
                 Nothing -> 0
 
 
+-- TODO: 4 should be numCapabilities
 scoreAll :: Text -> Vector Text -> Vector (Text, Double)
 scoreAll query choices =
-    V.map (\choice -> (choice, score lowerQuery (T.toLower choice))) choices
-  where lowerQuery = T.toLower query
+    V.concat $ parMap rdeepseq scoreVec (chunkVec (V.length choices `div` 4) choices)
+  where
+    scoreVec = V.map (\choice -> (choice, score lowerQuery (T.toLower choice)))
+    lowerQuery = T.toLower query
+
+chunkVec :: Int -> (Vector a) -> [Vector a]
+chunkVec n v
+  | V.null v = []
+  | otherwise = firstChunk : chunkVec n rest
+  where
+    (firstChunk, rest) = V.splitAt n v

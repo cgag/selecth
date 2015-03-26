@@ -13,3 +13,4 @@ codex.tags
 .cabal-sandbox/
 cabal.sandbox.config
 cabal.config
+TAGS
