@@ -47,6 +47,7 @@ data Search = Search
     { query     :: !Text
     , choices   :: !(Vector Text)
     , selection :: !Int
+    , matches   :: !(Vector Text)
     } deriving Show
 
 data SelecthState = SelecthState
@@ -84,8 +85,8 @@ charToKeypress :: Char -> KeyPress
 charToKeypress c = fromMaybe (if isPrint c then PlainChar c else Invisible)
                              (M.lookup c specialChars)
 
-matches :: Text -> Vector Text -> Vector Text
-matches qry chs = V.map fst
+findMatches :: Text -> Vector Text -> Vector Text
+findMatches qry chs = V.map fst
                   . sortImmutableVec (flip compare `on` snd)
                   . V.filter (\(_,cScore) -> cScore > 0)
                   $ scoreAll qry chs
@@ -95,8 +96,8 @@ matches qry chs = V.map fst
                               VI.sortBy f vec
                               V.freeze vec
 
-render :: Search -> Int -> Vector Text -> RenderedSearch
-render (Search {query=q, selection=selIndex}) csToShow matched =
+render :: Search -> Int -> RenderedSearch
+render (Search {query=q, matches=matched, selection=selIndex}) csToShow =
     RenderedSearch { queryString   = queryLine
                    , renderedLines = V.cons (queryLine, Reset)
                                             renderedMatchLines
@@ -158,9 +159,9 @@ handleInput inputChar search choicesToShow =
             { selection = mod (selection search + 1) choicesToShow }
         CtrlP -> SearchAction $ NewSearch search
             { selection = mod (selection search - 1) choicesToShow}
-        CtrlW -> SearchAction $ NewSearch search
-            { query = dropLastWord (query search)
-            , selection = 0 }
+        -- CtrlW -> SearchAction $ NewSearch search
+        --     { query = dropLastWord (query search)
+        --     , selection = 0 }
         Invisible -> SearchAction Ignore
 
 main :: IO ()
@@ -182,8 +183,11 @@ main = do
     replicateM_ linesToDraw $ T.hPutStr tty "\n"
     hCursorUp tty linesToDraw
 
-    let initSearch = Search { query="", choices=initialChoices, selection=0 }
-        rendered = render initSearch choicesToShow (matches "" initialChoices)
+    let initSearch = Search { query=""
+                            , choices=initialChoices
+                            , selection=0
+                            , matches=(findMatches "" initialChoices)}
+        rendered = render initSearch choicesToShow
     draw tty rendered
 
     eventLoop tty SelecthState { s_search = initSearch
@@ -209,17 +213,19 @@ main = do
               let newSearch = case saction of
                                   Ignore -> srch
                                   NewSearch s -> s
+                  -- results of the last search become choices for this search
                   memo' = case M.lookup (query newSearch) memo of
                             Just _  -> memo
                             Nothing -> M.insert (query newSearch)
-                                                (matches (query newSearch)
-                                                         (choices newSearch))
+                                                (findMatches (query newSearch)
+                                                             (matches srch))
                                                 memo
                   matched = fromMaybe (error "Memoization is broken")
                                       (M.lookup (query newSearch) memo')
-                  rendered = render newSearch csToShow matched
+                  newSearch' = newSearch { matches = matched }
+                  rendered = render newSearch' csToShow
               draw tty rendered
-              eventLoop tty (SelecthState newSearch
+              eventLoop tty (SelecthState newSearch'
                                           csToShow
                                           (matchCount rendered)
                                           memo')
