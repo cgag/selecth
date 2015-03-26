@@ -20,13 +20,12 @@ import qualified Data.Vector.Algorithms.Intro as VI
 
 import           System.Exit                  (exitFailure, exitSuccess)
 import           System.IO                    (Handle, IOMode (..), hClose,
-                                               hGetChar, openFile)
+                                               hGetChar, openFile, stderr)
 
 import           System.Console.ANSI
 
 import           Score
 import           Tty
-
 
 {- TODO: implement something like withTty that handles restoring tty state -}
 {- TODO: getting unweildy passing around currMatchCount and choicesToShow-}
@@ -54,6 +53,7 @@ data SelecthState = SelecthState
     { s_search            :: !Search
     , s_choicesToShow     :: !Int
     , s_currentMatchCount :: !Int
+    , s_scoreMemo :: M.Map Text (Vector Text)
     } deriving Show
 
 data RenderedSearch = RenderedSearch
@@ -95,8 +95,8 @@ matches qry chs = V.map fst
                               VI.sortBy f vec
                               V.freeze vec
 
-render :: Search -> Int -> RenderedSearch
-render (Search {query=q, choices=cs, selection=selIndex}) csToShow =
+render :: Search -> Int -> Vector Text -> RenderedSearch
+render (Search {query=q, selection=selIndex}) csToShow matched =
     RenderedSearch { queryString   = queryLine
                    , renderedLines = V.cons (queryLine, Reset)
                                             renderedMatchLines
@@ -105,8 +105,8 @@ render (Search {query=q, choices=cs, selection=selIndex}) csToShow =
     renderedMatchLines = swapBackground selIndex
                            . V.map (\m -> (m, Reset))
                            $ matchLines
-    matched    = V.take csToShow (matches q cs)
-    matchLines = pad csToShow matched
+    matched'    = V.take csToShow matched
+    matchLines = pad csToShow matched'
     queryLine  = prompt <> q
     swapBackground i vec =
       V.update
@@ -183,15 +183,16 @@ main = do
     hCursorUp tty linesToDraw
 
     let initSearch = Search { query="", choices=initialChoices, selection=0 }
-        rendered = render initSearch choicesToShow
+        rendered = render initSearch choicesToShow (matches "" initialChoices)
     draw tty rendered
 
     eventLoop tty SelecthState { s_search = initSearch
                                , s_currentMatchCount = matchCount rendered
-                               , s_choicesToShow = choicesToShow}
+                               , s_choicesToShow = choicesToShow
+                               , s_scoreMemo = M.empty}
   where
     eventLoop :: Handle -> SelecthState -> IO ()
-    eventLoop tty (SelecthState srch csToShow currMatchCount) = do
+    eventLoop tty (SelecthState srch csToShow currMatchCount memo) = do
       x <- hGetChar tty
       case handleInput x srch currMatchCount of
           ExitAction eaction -> do
@@ -208,8 +209,17 @@ main = do
               let newSearch = case saction of
                                   Ignore -> srch
                                   NewSearch s -> s
-                  rendered = render newSearch csToShow
+                  memo' = case M.lookup (query newSearch) memo of
+                            Just _  -> memo
+                            Nothing -> M.insert (query newSearch)
+                                                (matches (query newSearch)
+                                                         (choices newSearch))
+                                                memo
+                  matched = fromMaybe (error "Memoization is broken")
+                                      (M.lookup (query newSearch) memo')
+                  rendered = render newSearch csToShow matched
               draw tty rendered
               eventLoop tty (SelecthState newSearch
                                           csToShow
-                                          (matchCount rendered))
+                                          (matchCount rendered)
+                                          memo')

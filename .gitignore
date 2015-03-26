@@ -1,3 +1,6 @@
+TAGS
+err
+
 # Created by http://www.gitignore.io
 
 ### Haskell ###
@@ -13,4 +16,3 @@ codex.tags
 .cabal-sandbox/
 cabal.sandbox.config
 cabal.config
-TAGS
