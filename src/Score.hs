@@ -51,7 +51,6 @@ score q choice
                 Nothing -> 0
 
 
--- TODO: 4 should be numCapabilities
 scoreAll :: Text -> Vector Text -> Vector (Text, Double)
 scoreAll query choices =
     V.concat $ parMap rdeepseq
