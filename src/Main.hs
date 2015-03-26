@@ -20,7 +20,7 @@ import qualified Data.Vector.Algorithms.Intro as VI
 
 import           System.Exit                  (exitFailure, exitSuccess)
 import           System.IO                    (Handle, IOMode (..), hClose,
-                                               hGetChar, openFile, stderr)
+                                               hGetChar, openFile)
 
 import           System.Console.ANSI
 
@@ -140,7 +140,7 @@ writeSelection tty choice csToShow = do
         Nothing -> error "Failed to write selection."
 
 handleInput :: Char -> Search -> Int -> Action
-handleInput inputChar search currMatchCount =
+handleInput inputChar search choicesToShow =
     case charToKeypress inputChar of
         CtrlC -> ExitAction Abort
         Enter -> ExitAction $ MakeChoice Choice {
@@ -155,9 +155,9 @@ handleInput inputChar search currMatchCount =
             { query = query search <> T.singleton c
             , selection = 0 }
         CtrlN -> SearchAction $ NewSearch search
-            { selection = mod (selection search + 1) currMatchCount }
+            { selection = mod (selection search + 1) choicesToShow }
         CtrlP -> SearchAction $ NewSearch search
-            { selection = mod (selection search - 1) currMatchCount }
+            { selection = mod (selection search - 1) choicesToShow}
         CtrlW -> SearchAction $ NewSearch search
             { query = dropLastWord (query search)
             , selection = 0 }
@@ -194,7 +194,7 @@ main = do
     eventLoop :: Handle -> SelecthState -> IO ()
     eventLoop tty (SelecthState srch csToShow currMatchCount memo) = do
       x <- hGetChar tty
-      case handleInput x srch currMatchCount of
+      case handleInput x srch csToShow of
           ExitAction eaction -> do
               hSetCursorColumn tty 0
               saneTty
