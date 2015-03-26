@@ -2,6 +2,7 @@
 
 module Score where
 
+import GHC.Conc (numCapabilities)
 import Control.Parallel.Strategies
 import Data.Text (Text)
 import qualified Data.Text                   as T
@@ -52,7 +53,9 @@ score q choice
 -- TODO: 4 should be numCapabilities
 scoreAll :: Text -> Vector Text -> Vector (Text, Double)
 scoreAll query choices =
-    V.concat $ parMap rdeepseq scoreVec (chunkVec (V.length choices `div` 4) choices)
+    V.concat $ parMap rdeepseq
+                      scoreVec
+                      (chunkVec (V.length choices `div` numCapabilities) choices)
   where
     scoreVec = V.map (\choice -> (choice, score lowerQuery (T.toLower choice)))
     lowerQuery = T.toLower query
