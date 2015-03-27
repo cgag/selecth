@@ -149,7 +149,6 @@ dropLast :: Text -> Text
 dropLast = T.dropEnd 1
 
 dropLastWord :: Text -> Text
--- dropLastWord = T.reverse . T.dropWhile (/= ' ') . T.reverse
 dropLastWord = T.stripEnd . T.dropWhileEnd (not . isSpace)
 
 writeSelection :: Handle -> Search -> Int -> IO ()
