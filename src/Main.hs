@@ -27,8 +27,6 @@ import           System.Console.ANSI
 import           Score
 import           Tty
 
-import Debug.Trace
-
 {- TODO: implement something like withTty that handles restoring tty state -}
 {- TODO: getting unweildy passing around currMatchCount and choicesToShow-}
 {- TODO: look into resource monad for ensuring tty gets closed? -}
@@ -58,9 +56,9 @@ data Search = Search
     } deriving Show
 
 data SelecthState = SelecthState
-    { s_search            :: !Search
-    , s_choicesToShow     :: !Int
-    , s_scoreMemo :: Memo
+    { s_search        :: !Search
+    , s_choicesToShow :: !Int
+    , s_scoreMemo     :: Memo
     } deriving Show
 
 data RenderedSearch = RenderedSearch
@@ -116,16 +114,6 @@ findMatches memo qry chs =
                               vec <- V.thaw v
                               VI.sortBy f vec
                               V.freeze vec
-
-  -- memo' = case M.lookup (query newSearch) memo of
-  --           Just _  -> memo
-  --           Nothing -> M.insert (query newSearch)
-  --                               (findMatches (query newSearch)
-  --                                            (matches srch))
-  --                               memo
-  -- matched = fromMaybe (error "Memoization is broken")
-  --                     (M.lookup (query newSearch) memo')
-  -- newSearch' = newSearch { matches = matched }
 
 render :: Search -> Int -> RenderedSearch
 render (Search {query=q, matches=matched, selection=selIndex}) csToShow =
@@ -217,10 +205,7 @@ buildSearch action search choicesToShow memo =
                     , memo)
         Ignore -> (search, memo)
   where
-    fromMemo q m = case M.lookup q m of
-                     Nothing -> trace ("memo error on : " <> T.unpack q) $ error "Memoization error"
-                     Just ms -> ms
-
+    fromMemo q m = fromMaybe (error "Memoization error") (M.lookup q m)
 
 main :: IO ()
 main = do
@@ -241,7 +226,7 @@ main = do
     replicateM_ linesToDraw $ T.hPutStr tty "\n"
     hCursorUp tty linesToDraw
 
-    let (initMatches, initMemo) = (findMatches M.empty "" initialChoices)
+    let (initMatches, initMemo) = findMatches M.empty "" initialChoices
     let initSearch = Search { query=""
                             , choices=initialChoices
                             , selection=0

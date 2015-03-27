@@ -2,12 +2,12 @@
 
 module Score where
 
-import GHC.Conc (numCapabilities)
-import Control.Parallel.Strategies
-import Data.Text (Text)
+import           Control.Parallel.Strategies
+import           Data.Text                   (Text)
 import qualified Data.Text                   as T
-import Data.Vector (Vector)
-import qualified Data.Vector as V
+import           Data.Vector                 (Vector)
+import qualified Data.Vector                 as V
+import           GHC.Conc                    (numCapabilities)
 
 -- TODO: add tests
 
@@ -59,7 +59,7 @@ scoreAll query choices =
     scoreVec = V.map (\choice -> (choice, score lowerQuery (T.toLower choice)))
     lowerQuery = T.toLower query
 
-chunkVec :: Int -> (Vector a) -> [Vector a]
+chunkVec :: Int -> Vector a -> [Vector a]
 chunkVec n v
   | V.null v = []
   | otherwise = firstChunk : chunkVec n rest
