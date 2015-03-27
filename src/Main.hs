@@ -4,7 +4,7 @@ import           Control.Monad
 import           Control.Monad.ST
 
 import qualified Data.ByteString              as B
-import           Data.Char                    (isPrint)
+import           Data.Char                    (isPrint, isSpace)
 import           Data.Function                (on)
 import qualified Data.Map.Strict              as M
 import           Data.Maybe                   (fromMaybe)
@@ -60,14 +60,12 @@ data Search = Search
 data SelecthState = SelecthState
     { s_search            :: !Search
     , s_choicesToShow     :: !Int
-    , s_currentMatchCount :: !Int
     , s_scoreMemo :: Memo
     } deriving Show
 
 data RenderedSearch = RenderedSearch
     { queryString   :: !Text
     , renderedLines :: !(Vector (Text, SGR))
-    , matchCount    :: !Int
     } deriving Show
 
 data Choice = Choice
@@ -106,10 +104,8 @@ charToKeypress c = fromMaybe (if isPrint c then PlainChar c else Invisible)
 findMatches :: Memo -> Text -> Vector Text -> (Vector Text, Memo)
 findMatches memo qry chs =
     case M.lookup qry memo of
-       Just mtchs -> trace "Cache hit" (mtchs, memo)
-       Nothing -> trace "Cache miss" (getMatches qry chs
-                                     , memo)
-                                     -- M.insert qry (getMatches qry chs) memo)
+       Just mtchs -> (mtchs, memo)
+       Nothing -> (getMatches qry chs, M.insert qry (getMatches qry chs) memo)
   where
     getMatches q cs = V.map fst
                         . sortImmutableVec (flip compare `on` snd)
@@ -136,7 +132,7 @@ render (Search {query=q, matches=matched, selection=selIndex}) csToShow =
     RenderedSearch { queryString   = queryLine
                    , renderedLines = V.cons (queryLine, Reset)
                                             renderedMatchLines
-                   , matchCount    = V.length matched }
+                   }
   where
     renderedMatchLines = swapBackground selIndex
                            . V.map (\m -> (m, Reset))
@@ -165,7 +161,8 @@ dropLast :: Text -> Text
 dropLast = T.dropEnd 1
 
 dropLastWord :: Text -> Text
-dropLastWord = T.reverse . T.dropWhile (/= ' ') . T.reverse
+-- dropLastWord = T.reverse . T.dropWhile (/= ' ') . T.reverse
+dropLastWord = T.stripEnd . T.dropWhileEnd (not . isSpace)
 
 writeSelection :: Handle -> Search -> Int -> IO ()
 writeSelection tty (Search {matches=matches', selection=sel}) csToShow = do
@@ -178,7 +175,7 @@ writeSelection tty (Search {matches=matches', selection=sel}) csToShow = do
 handleInput :: Char -> Search -> Action
 handleInput inputChar search =
     case charToKeypress inputChar of
-        Enter -> ExitAction (MakeChoice search)
+        Enter     -> ExitAction (MakeChoice search)
         CtrlC     -> ExitAction Abort
         CtrlN     -> SearchAction SelectDown
         CtrlP     -> SearchAction SelectUp
@@ -189,27 +186,6 @@ handleInput inputChar search =
         Invisible -> SearchAction Ignore
         PlainChar c -> SearchAction $ Extend (T.singleton c)
 
-        -- CtrlC -> ExitAction Abort
-        -- Enter -> ExitAction $ MakeChoice Choice {
-        --                         finalMatches = findMatches (query search)
-        --                                                    (choices search)
-        --                       , matchIndex = selection search
-        --                       }
-        -- Backspace -> SearchAction $ NewSearch search
-        --     { query = dropLast $ query search
-        --     , selection = 0 }
-        -- PlainChar c -> SearchAction $ NewSearch search
-        --     { query = query search <> T.singleton c
-        --     , selection = 0 }
-        -- CtrlN -> SearchAction $ NewSearch search
-        --     { selection = mod (selection search + 1) choicesToShow }
-        -- CtrlP -> SearchAction $ NewSearch search
-        --     { selection = mod (selection search - 1) choicesToShow}
-        -- -- CtrlW -> SearchAction $ NewSearch search
-        -- --     { query = dropLastWord (query search)
-        -- --     , selection = 0 }
-        -- Invisible -> SearchAction Ignore
-
 buildSearch ::SearchAction -> Search -> Int -> Memo -> (Search, Memo)
 buildSearch action search choicesToShow memo =
     case action of
@@ -219,19 +195,31 @@ buildSearch action search choicesToShow memo =
                              , matches = matches'
                              , selection = 0 }
             q' = query search <> qAddition
-            (matches', memo') = findMatches memo q' (choices search)
-        DropWord -> (search { query = dropLastWord (query search)
+            (matches', memo') = findMatches memo q' (matches search)
+        DropWord -> ( search { query = q'
+                            , matches = fromMemo q' memo
                             , selection = 0}
                     , memo)
-        DropChar -> (search { query = dropLast (query search)
-                            , selection = 0}
+          where q' = dropLastWord (query search)
+        DropChar -> (search { query = q'
+                            , matches = fromMemo q' memo
+                            , selection = 0 }
                     , memo)
+          where q' = dropLast (query search)
         Clear -> (search { query = "", selection = 0 }, memo)
-        SelectDown -> ( search { selection = mod (selection search + 1) choicesToShow }
+        SelectDown -> ( search { selection = mod (selection search + 1)
+                                                 (min choicesToShow
+                                                      (V.length (matches search))) }
                       , memo)
-        SelectUp -> (search { selection = mod (selection search - 1) choicesToShow}
+        SelectUp -> (search { selection = mod (selection search - 1)
+                                              (min choicesToShow
+                                                   (V.length (matches search))) }
                     , memo)
-        Ignore -> undefined
+        Ignore -> (search, memo)
+  where
+    fromMemo q m = case M.lookup q m of
+                     Nothing -> trace ("memo error on : " <> T.unpack q) $ error "Memoization error"
+                     Just ms -> ms
 
 
 main :: IO ()
@@ -254,7 +242,6 @@ main = do
     hCursorUp tty linesToDraw
 
     let (initMatches, initMemo) = (findMatches M.empty "" initialChoices)
-    T.putStrLn "Out of find matches"
     let initSearch = Search { query=""
                             , choices=initialChoices
                             , selection=0
@@ -265,20 +252,19 @@ main = do
     draw tty rendered
 
     eventLoop tty SelecthState { s_search = initSearch
-                               , s_currentMatchCount = matchCount rendered
                                , s_choicesToShow = choicesToShow
                                , s_scoreMemo = initMemo
                                }
  where
     eventLoop :: Handle -> SelecthState -> IO ()
-    eventLoop tty (SelecthState srch csToShow currMatchCount memo) = do
+    eventLoop tty (SelecthState srch csToShow memo) = do
       x <- hGetChar tty
       case handleInput x srch of
           ExitAction eaction -> do
               hSetCursorColumn tty 0
               saneTty
               case eaction of
-                  Abort -> hCursorDown tty (currMatchCount + 1)
+                  Abort -> hCursorDown tty (V.length (matches srch) + 1)
                            >> hClose tty
                            >> exitFailure
                   MakeChoice c -> writeSelection tty c csToShow
@@ -289,5 +275,4 @@ main = do
               draw tty (render search' csToShow)
               eventLoop tty (SelecthState search'
                                           csToShow
-                                          (V.length $ matches search')
                                           memo')
