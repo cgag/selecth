@@ -183,28 +183,23 @@ buildSearch action search choicesToShow memo =
                              , selection = 0 }
             q' = query search <> qAddition
             (matches', memo') = findMatches memo q' (matches search)
-        DropWord -> ( search { query = q'
-                            , matches = fromMemo q' memo
-                            , selection = 0}
-                    , memo)
-          where q' = dropLastWord (query search)
-        DropChar -> (search { query = q'
-                            , matches = fromMemo q' memo
-                            , selection = 0 }
-                    , memo)
-          where q' = dropLast (query search)
-        Clear -> (search { query = "", selection = 0 }, memo)
+        DropWord -> memoSearch $ dropLastWord (query search)
+        DropChar -> memoSearch $ dropLast (query search)
+        Clear    -> memoSearch ""
+        Ignore   -> (search, memo)
         SelectDown -> ( search { selection = mod (selection search + 1)
-                                                 (min choicesToShow
-                                                      (V.length (matches search))) }
+                                                 possibleSelections}
                       , memo)
         SelectUp -> (search { selection = mod (selection search - 1)
-                                              (min choicesToShow
-                                                   (V.length (matches search))) }
+                                               possibleSelections}
                     , memo)
-        Ignore -> (search, memo)
   where
     fromMemo q m = fromMaybe (error "Memoization error") (M.lookup q m)
+    memoSearch q =  (search { query = q
+                            , matches = fromMemo q memo
+                            , selection = 0}
+                    , memo)
+    possibleSelections = min choicesToShow (V.length (matches search))
 
 main :: IO ()
 main = do
