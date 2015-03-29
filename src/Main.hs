@@ -147,13 +147,12 @@ dropLast = T.dropEnd 1
 dropLastWord :: Text -> Text
 dropLastWord = T.stripEnd . T.dropWhileEnd (not . isSpace)
 
-writeSelection :: Handle -> Search -> Int -> IO ()
-writeSelection tty (Search {matches=matches', selection=sel}) csToShow = do
-    hCursorDown tty . V.length . V.take csToShow $ matches'
+writeSelection :: Handle -> Search -> IO ()
+writeSelection tty (Search {matches=matches', selection=sel}) = do
+    hCursorDown tty (V.length matches')
     T.hPutStr tty "\n"
-    case matches' V.!? sel of
-        Just match -> T.putStrLn match
-        Nothing -> error "Failed to write selection."
+    T.putStrLn $ fromMaybe (error "Failed to write selection.")
+                           (matches' V.!? sel)
 
 handleInput :: Char -> Search -> Action
 handleInput inputChar search =
@@ -239,6 +238,7 @@ main = do
  where
     eventLoop :: Handle -> SelecthState -> IO ()
     eventLoop tty (SelecthState srch csToShow memo) = do
+      -- TODO: use hgetcontents or something instead, read all chars available
       x <- hGetChar tty
       case handleInput x srch of
           ExitAction eaction -> do
@@ -248,7 +248,7 @@ main = do
                   Abort -> hCursorDown tty (V.length (matches srch) + 1)
                            >> hClose tty
                            >> exitFailure
-                  MakeChoice c -> writeSelection tty c csToShow
+                  MakeChoice s -> writeSelection tty s
                                   >> hClose tty
                                   >> exitSuccess
           SearchAction saction -> do
