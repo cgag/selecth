@@ -66,10 +66,6 @@ data RenderedSearch = RenderedSearch
     , renderedLines :: !(Vector (Text, SGR))
     } deriving Show
 
-data Choice = Choice
-    { finalMatches :: !(Vector Text)
-    , matchIndex   :: !Int
-    }
 
 data Action       = SearchAction !SearchAction | ExitAction !ExitAction
 
@@ -252,6 +248,4 @@ main = do
           SearchAction saction -> do
               let (search', memo') = buildSearch saction srch csToShow memo
               draw tty (render search' csToShow)
-              eventLoop tty (SelecthState search'
-                                          csToShow
-                                          memo')
+              eventLoop tty (SelecthState search' csToShow memo')
