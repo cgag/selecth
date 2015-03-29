@@ -73,8 +73,8 @@ data SearchAction = Extend !Text
                   | DropWord
                   | DropChar
                   | Clear
-                  | SelectUp
-                  | SelectDown
+                  | SelectPrev
+                  | SelectNext
                   | Ignore
 
 data ExitAction   = Abort
@@ -160,8 +160,8 @@ handleInput inputChar search =
     case charToKeypress inputChar of
         Enter     -> ExitAction (MakeChoice search)
         CtrlC     -> ExitAction Abort
-        CtrlN     -> SearchAction SelectDown
-        CtrlP     -> SearchAction SelectUp
+        CtrlN     -> SearchAction SelectNext
+        CtrlP     -> SearchAction SelectPrev
         CtrlU     -> SearchAction Clear
         CtrlW     -> SearchAction DropWord
         CtrlH     -> SearchAction DropChar
@@ -179,22 +179,25 @@ buildSearch action search choicesToShow memo =
                              , selection = 0 }
             q' = query search <> qAddition
             (matches', memo') = findMatches memo q' (matches search)
-        DropWord -> memoSearch $ dropLastWord (query search)
-        DropChar -> memoSearch $ dropLast (query search)
-        Clear    -> memoSearch ""
-        Ignore   -> (search, memo)
-        SelectDown -> ( search { selection = mod (selection search + 1)
-                                                 possibleSelections}
-                      , memo)
-        SelectUp -> (search { selection = mod (selection search - 1)
-                                               possibleSelections}
-                    , memo)
+        DropWord   -> memoSearch $ dropLastWord (query search)
+        DropChar   -> memoSearch $ dropLast (query search)
+        Clear      -> if T.null (query search)
+                      then (search, memo) -- why isn't this being hit?
+                      else memoSearch ""
+        Ignore     -> (search, memo)
+        SelectNext -> moveSel 1
+        SelectPrev -> moveSel (-1)
   where
     fromMemo q m = fromMaybe (error "Memoization error") (M.lookup q m)
     memoSearch q =  (search { query = q
                             , matches = fromMemo q memo
                             , selection = 0}
                     , memo)
+    moveSel n = ( search { selection = if possibleSelections > 0
+                                       then mod (selection search + n)
+                                                possibleSelections
+                                       else selection search }
+                , memo) -- TODO: unsafe if possibleSelections is 0
     possibleSelections = min choicesToShow (V.length (matches search))
 
 main :: IO ()
@@ -207,7 +210,10 @@ main = do
 
     -- TODO: can't quit if there's nothing on stdin
     contents <- B.getContents
-    let initialChoices = V.fromList . T.lines . TE.decodeUtf8With Err.ignore $ contents
+    let initialChoices = V.fromList
+                         . T.lines
+                         . TE.decodeUtf8With Err.ignore
+                         $ contents
 
     -- create room for choices and query line
     let linesToDraw = choicesToShow + 1
