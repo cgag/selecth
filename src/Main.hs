@@ -58,7 +58,7 @@ data Search = Search
 data SelecthState = SelecthState
     { s_search        :: !Search
     , s_choicesToShow :: !Int
-    , s_scoreMemo     :: Memo
+    , s_scoreMemo     :: !Memo
     } deriving Show
 
 data RenderedSearch = RenderedSearch
@@ -71,9 +71,9 @@ data Choice = Choice
     , matchIndex   :: !Int
     }
 
-data Action       = SearchAction SearchAction | ExitAction ExitAction
+data Action       = SearchAction !SearchAction | ExitAction !ExitAction
 
-data SearchAction = Extend Text
+data SearchAction = Extend !Text
                   | DropWord
                   | DropChar
                   | Clear
@@ -82,7 +82,7 @@ data SearchAction = Extend Text
                   | Ignore
 
 data ExitAction   = Abort
-                  | MakeChoice Search
+                  | MakeChoice !Search
 
 specialChars :: M.Map Char KeyPress
 specialChars = M.fromList [ ('\ETX', CtrlC)
@@ -125,7 +125,7 @@ render (Search {query=q, matches=matched, selection=selIndex}) csToShow =
     renderedMatchLines = swapBackground selIndex
                            . V.map (\m -> (m, Reset))
                            $ matchLines
-    matched'    = V.take csToShow matched
+    matched'   = V.take csToShow matched
     matchLines = pad csToShow matched'
     queryLine  = prompt <> q
     swapBackground i vec =

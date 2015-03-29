@@ -61,6 +61,7 @@ scoreAll query choices =
 
 chunkVec :: Int -> Vector a -> [Vector a]
 chunkVec n v
+  | n == 0   = []
   | V.null v = []
   | otherwise = firstChunk : chunkVec n rest
   where
