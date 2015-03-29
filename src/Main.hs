@@ -99,13 +99,13 @@ findMatches :: Memo -> Text -> Vector Text -> (Vector Text, Memo)
 findMatches memo qry chs =
     case M.lookup qry memo of
        Just mtchs -> (mtchs, memo)
-       Nothing -> (getMatches qry chs, M.insert qry (getMatches qry chs) memo)
+       Nothing    -> (newMatches, M.insert qry newMatches memo)
   where
+    newMatches = getMatches qry chs
     getMatches q cs = V.map fst
                         . sortImmutableVec (flip compare `on` snd)
                         . V.filter (\(_,cScore) -> cScore > 0)
                         $ scoreAll q cs
-
     sortImmutableVec f v = runST $ do
                               vec <- V.thaw v
                               VI.sortBy f vec
