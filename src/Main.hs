@@ -27,8 +27,6 @@ import           System.Console.ANSI
 import           Score
 import           Tty
 
-import Debug.Trace.Err
-
 {- TODO: implement something like withTty that handles restoring tty state -}
 {- TODO: getting unweildy passing around currMatchCount and choicesToShow-}
 {- TODO: look into resource monad for ensuring tty gets closed? -}
@@ -178,8 +176,7 @@ handleInput inputText search = T.foldr buildActions [] inputText
           PlainChar char -> SearchAction $ Extend (T.singleton char)
 
 collapseActions :: [Action] -> [Action]
-collapseActions actions = trace ("collapsing: " <> (T.pack . show $ actions))
-                                (foldr collapse [] actions)
+collapseActions = foldr collapse []
   where
     collapse (SearchAction (Extend t)) (SearchAction (Extend t'):as) =
         SearchAction (Extend (t <> t')) : as
@@ -187,11 +184,10 @@ collapseActions actions = trace ("collapsing: " <> (T.pack . show $ actions))
         SearchAction (DropChars $ n + m) : as
     collapse nextA as = nextA : as
 
-
 buildSearch ::SearchAction -> Search -> Int -> Memo -> (Search, Memo)
 buildSearch action search choicesToShow memo =
     case action of
-        Extend qAddition -> trace ("Extending with: " <> qAddition) (search', memo')
+        Extend qAddition -> (search', memo')
           where
             search' = search { query   = q'
                              , matches = matches'
@@ -216,7 +212,7 @@ buildSearch action search choicesToShow memo =
                                        then mod (selection search + n)
                                                 possibleSelections
                                        else selection search }
-                , memo) -- TODO: unsafe if possibleSelections is 0
+                , memo)
     possibleSelections = min choicesToShow (V.length (matches search))
 
 main :: IO ()
@@ -260,22 +256,22 @@ main = do
     eventLoop tty (SelecthState srch csToShow memo) = do
       x <- getBuffered tty
       let actions = collapseActions (handleInput (T.pack x) srch)
-      trace ("Actions: " <> (T.pack . show $ actions)) $ forM_ actions $ \action ->
-          case action of
-              SearchAction saction -> do
-                  let (search', memo') = buildSearch saction srch csToShow memo
-                  draw tty (render search' csToShow)
-                  eventLoop tty (SelecthState search' csToShow memo')
-              ExitAction eaction -> do
-                  hSetCursorColumn tty 0
-                  saneTty
-                  case eaction of
-                      Abort -> hCursorDown tty (V.length (matches srch) + 1)
-                               >> hClose tty
-                               >> exitFailure
-                      MakeChoice s -> writeSelection tty s
-                                      >> hClose tty
-                                      >> exitSuccess
+      forM_ actions $ \action ->
+        case action of
+            SearchAction saction -> do
+                let (search', memo') = buildSearch saction srch csToShow memo
+                draw tty (render search' csToShow)
+                eventLoop tty (SelecthState search' csToShow memo')
+            ExitAction eaction -> do
+                hSetCursorColumn tty 0
+                saneTty
+                case eaction of
+                    Abort -> hCursorDown tty (V.length (matches srch) + 1)
+                             >> hClose tty
+                             >> exitFailure
+                    MakeChoice s -> writeSelection tty s
+                                    >> hClose tty
+                                    >> exitSuccess
 
     getBuffered :: Handle -> IO String
     getBuffered h = do
