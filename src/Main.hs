@@ -20,12 +20,14 @@ import qualified Data.Vector.Algorithms.Intro as VI
 
 import           System.Exit                  (exitFailure, exitSuccess)
 import           System.IO                    (Handle, IOMode (..), hClose,
-                                               hGetChar, openFile)
+                                               openFile, hGetChar, hReady)
 
 import           System.Console.ANSI
 
 import           Score
 import           Tty
+
+import Debug.Trace.Err
 
 {- TODO: implement something like withTty that handles restoring tty state -}
 {- TODO: getting unweildy passing around currMatchCount and choicesToShow-}
@@ -53,7 +55,10 @@ data Search = Search
     , choices   :: !(Vector Text)
     , selection :: !Int
     , matches   :: !(Vector Text)
-    } deriving Show
+    }
+
+instance Show Search where
+  show _ = "[search]"
 
 data SelecthState = SelecthState
     { s_search        :: !Search
@@ -67,18 +72,22 @@ data RenderedSearch = RenderedSearch
     } deriving Show
 
 
-data Action       = SearchAction !SearchAction | ExitAction !ExitAction
+data Action = SearchAction !SearchAction | ExitAction !ExitAction
+  deriving Show
+
 
 data SearchAction = Extend !Text
                   | DropWord
-                  | DropChar
+                  | DropChars Int
                   | Clear
                   | SelectPrev
                   | SelectNext
                   | Ignore
+  deriving Show
 
 data ExitAction   = Abort
                   | MakeChoice !Search
+  deriving Show
 
 specialChars :: M.Map Char KeyPress
 specialChars = M.fromList [ ('\ETX', CtrlC)
@@ -141,9 +150,6 @@ draw tty rendered = do
 -- TODO: Ensure handle to tty is closed?  See what GB ensures.
 {-restoreTTY :: IO ()-}
 
-dropLast :: Text -> Text
-dropLast = T.dropEnd 1
-
 dropLastWord :: Text -> Text
 dropLastWord = T.stripEnd . T.dropWhileEnd (not . isSpace)
 
@@ -154,44 +160,58 @@ writeSelection tty (Search {matches=matches', selection=sel}) = do
     T.putStrLn $ fromMaybe (error "Failed to write selection.")
                            (matches' V.!? sel)
 
-handleInput :: Char -> Search -> Action
-handleInput inputChar search =
-    case charToKeypress inputChar of
-        Enter     -> ExitAction (MakeChoice search)
-        CtrlC     -> ExitAction Abort
-        CtrlN     -> SearchAction SelectNext
-        CtrlP     -> SearchAction SelectPrev
-        CtrlU     -> SearchAction Clear
-        CtrlW     -> SearchAction DropWord
-        CtrlH     -> SearchAction DropChar
-        Backspace -> SearchAction DropChar
-        Invisible -> SearchAction Ignore
-        PlainChar c -> SearchAction $ Extend (T.singleton c)
+handleInput :: Text -> Search -> [Action]
+handleInput inputText search = T.foldr buildActions [] inputText
+  where
+    buildActions c xs = actionFor c : xs
+    actionFor c =
+      case charToKeypress c of
+          Enter     -> ExitAction (MakeChoice search)
+          CtrlC     -> ExitAction Abort
+          CtrlN     -> SearchAction SelectNext
+          CtrlP     -> SearchAction SelectPrev
+          CtrlU     -> SearchAction Clear
+          CtrlW     -> SearchAction DropWord
+          CtrlH     -> SearchAction (DropChars 1)
+          Backspace -> SearchAction (DropChars 1)
+          Invisible -> SearchAction Ignore
+          PlainChar char -> SearchAction $ Extend (T.singleton char)
+
+collapseActions :: [Action] -> [Action]
+collapseActions actions = trace ("collapsing: " <> (T.pack . show $ actions))
+                                (foldr collapse [] actions)
+  where
+    collapse (SearchAction (Extend t)) (SearchAction (Extend t'):as) =
+        SearchAction (Extend (t <> t')) : as
+    collapse (SearchAction (DropChars n)) (SearchAction (DropChars m):as) =
+        SearchAction (DropChars $ n + m) : as
+    collapse nextA as = nextA : as
+
 
 buildSearch ::SearchAction -> Search -> Int -> Memo -> (Search, Memo)
 buildSearch action search choicesToShow memo =
     case action of
-        Extend qAddition -> (search', memo')
+        Extend qAddition -> trace ("Extending with: " <> qAddition) (search', memo')
           where
             search' = search { query   = q'
                              , matches = matches'
                              , selection = 0 }
             q' = query search <> qAddition
             (matches', memo') = findMatches memo q' (matches search)
-        DropWord   -> memoSearch $ dropLastWord (query search)
-        DropChar   -> memoSearch $ dropLast (query search)
-        Clear      -> if T.null (query search)
-                      then (search, memo) -- why isn't this being hit?
-                      else memoSearch ""
+        DropWord    -> memoSearch $ dropLastWord (query search)
+        DropChars n -> memoSearch $ T.dropEnd n (query search)
+        Clear       -> if T.null (query search)
+                       then (search, memo) -- why isn't this being hit?
+                       else memoSearch ""
         Ignore     -> (search, memo)
         SelectNext -> moveSel 1
         SelectPrev -> moveSel (-1)
   where
-    fromMemo q m = fromMaybe (error "Memoization error") (M.lookup q m)
-    memoSearch q =  (search { query = q
-                            , matches = fromMemo q memo
-                            , selection = 0}
-                    , memo)
+    memoSearch q =  let (matches', memo') = findMatches memo q (choices search)
+                    in  (search { query = q
+                                , matches = matches'
+                                , selection = 0}
+                        , memo')
     moveSel n = ( search { selection = if possibleSelections > 0
                                        then mod (selection search + n)
                                                 possibleSelections
@@ -238,20 +258,31 @@ main = do
  where
     eventLoop :: Handle -> SelecthState -> IO ()
     eventLoop tty (SelecthState srch csToShow memo) = do
-      -- TODO: use hgetcontents or something instead, read all chars available
-      x <- hGetChar tty
-      case handleInput x srch of
-          ExitAction eaction -> do
-              hSetCursorColumn tty 0
-              saneTty
-              case eaction of
-                  Abort -> hCursorDown tty (V.length (matches srch) + 1)
-                           >> hClose tty
-                           >> exitFailure
-                  MakeChoice s -> writeSelection tty s
-                                  >> hClose tty
-                                  >> exitSuccess
-          SearchAction saction -> do
-              let (search', memo') = buildSearch saction srch csToShow memo
-              draw tty (render search' csToShow)
-              eventLoop tty (SelecthState search' csToShow memo')
+      x <- getBuffered tty
+      let actions = collapseActions (handleInput (T.pack x) srch)
+      trace ("Actions: " <> (T.pack . show $ actions)) $ forM_ actions $ \action ->
+          case action of
+              SearchAction saction -> do
+                  let (search', memo') = buildSearch saction srch csToShow memo
+                  draw tty (render search' csToShow)
+                  eventLoop tty (SelecthState search' csToShow memo')
+              ExitAction eaction -> do
+                  hSetCursorColumn tty 0
+                  saneTty
+                  case eaction of
+                      Abort -> hCursorDown tty (V.length (matches srch) + 1)
+                               >> hClose tty
+                               >> exitFailure
+                      MakeChoice s -> writeSelection tty s
+                                      >> hClose tty
+                                      >> exitSuccess
+
+    getBuffered :: Handle -> IO String
+    getBuffered h = do
+      x <- hGetChar h
+      ready <- hReady h
+      if ready
+         then do
+           y <- getBuffered h
+           return (x : y)
+         else return [x]
