@@ -151,6 +151,8 @@ draw tty rendered = do
 dropLastWord :: Text -> Text
 dropLastWord = T.stripEnd . T.dropWhileEnd (not . isSpace)
 
+-- TODO: ugh, this should indeed have used choices to show,
+-- there can easily be 100s of matches.
 writeSelection :: Handle -> Search -> IO ()
 writeSelection tty (Search {matches=matches', selection=sel}) = do
     hCursorDown tty (V.length matches')
