@@ -1,56 +1,99 @@
 {-# LANGUAGE ViewPatterns #-}
 
-module Score where
+module Score
+( Score(..)
+, Match(..)
+, score
+, scoreAll
+)
+where
 
 import           Control.Parallel.Strategies
+import           Control.DeepSeq
 import           Data.Text                   (Text)
+import Control.Applicative ((<$>))
+import Data.Maybe
 import qualified Data.Text                   as T
+import Data.Function (on)
 import           Data.Vector                 (Vector)
 import qualified Data.Vector                 as V
 import           GHC.Conc                    (numCapabilities)
+import qualified Data.List as L
+
+
+data Match = Match
+    { m_startPos :: Int
+    , m_endPos :: Int
+    }
+
+data Score = Score
+    { s_score :: Double
+    , s_match :: Match
+    }
+
+instance NFData Match where
+  rnf (Match start end) = rnf start `seq` rnf end
+
+instance NFData Score where
+  rnf (Score s m) = rnf s `seq` rnf m
+
 
 -- TODO: add tests
 
-normalizeScore :: Int -> Text -> Text -> Double
-normalizeScore matchLength query choice
-    | matchLength <= 0 = 0
-    | otherwise =
-          fromIntegral (T.length query)
-          / fromIntegral matchLength       -- penalize longer match lengths
-          / fromIntegral (T.length choice) -- penalize longer choice strings
+matchLength :: Match -> Int
+matchLength m = m_endPos m - m_startPos m
+
+normalizeScore :: Match -> Text -> Text -> Double
+normalizeScore match query choice =
+        fromIntegral (T.length query)
+        / fromIntegral (matchLength match) -- penalize longer match lengths
+        / fromIntegral (T.length choice)   -- penalize longer choice strings
 
 
 -- TODO: matchlenghts could probably be a fold over the chars
 -- instead of using tails
-score :: Text -> Text -> Double
-score q choice
-    | T.null q      = 1
-    | T.null choice = 0
-    | otherwise = let minLength = minMatchLength q choice
-                  in normalizeScore minLength q choice
+score :: Text -> Text -> Score
+score q c
+    | T.null q = Score 1 (Match 0 0)
+    | T.null c = Score 0 (Match 0 0)
+    | otherwise =
+      case shortestMatch of
+        Nothing -> Score 0 (Match 0 0)
+        Just m  -> Score { s_score = (normalizeScore m q c)
+                         , s_match = m
+                         }
   where
-    minMatchLength :: Text -> Text -> Int
-    minMatchLength (T.uncons -> Nothing) _  =  1
-    minMatchLength _ (T.uncons -> Nothing)  =  0
-    minMatchLength (T.uncons -> Just (qHead, rest)) choice =
-        let matchLengths =  filter (>0)
-                            . map (\t -> endMatch rest (T.drop 1 t) 1)
-                            . filter ((== qHead) . T.head)
-                            . filter (not . T.null)
-                            $ T.tails choice
-        in  if null matchLengths
-            then 0
-            else minimum matchLengths
-      where
-        endMatch :: Text -> Text -> Int -> Int
-        endMatch (T.uncons -> Nothing) _ lastIndex = lastIndex
-        endMatch (T.uncons -> Just (q, qs)) s lastIndex =
-            case T.findIndex (== q) s of
-                Just i -> endMatch qs (T.drop (i + 1) s) (i + 1 + lastIndex)
-                Nothing -> 0
+    shortestMatch :: Maybe Match
+    shortestMatch = L.minimumBy (compare `on` matchLength) <$> (matches q c)
 
 
-scoreAll :: Text -> Vector Text -> Vector (Text, Double)
+matches :: Text -> Text -> Maybe [Match]
+matches query choice = if null candidates
+                       then Nothing
+                       else Just candidates
+  where
+    candidates :: [Match]
+    candidates = map (\(chs, startPos) ->
+                        Match { m_startPos = startPos
+                              , m_endPos = startPos + getMatchLength query chs
+                              })
+                     (starts query choice)
+
+    starts :: Text -> Text -> [(Text, Int)]
+    starts q c = filter (\(t, _) -> T.head t == T.head q)
+                 . filter (\(t, _) -> (not . T.null $ t))
+                 $ zip (T.tails c) [0..]
+
+    getMatchLength q c = go 0 q c
+     where
+        go n q c
+          | T.null q = n
+          | T.null c = 100000 -- no match
+          | otherwise = if T.head q == T.head c
+                        then go (n + 1) (T.drop 1 q) (T.drop 1 c)
+                        else go (n + 1) q (T.drop 1 c)
+
+scoreAll :: Text -> Vector Text -> Vector (Text, Score)
 scoreAll query choices =
     V.concat $
       parMap rdeepseq
@@ -62,8 +105,8 @@ scoreAll query choices =
 
 chunkVec :: Int -> Vector a -> [Vector a]
 chunkVec n v
-  | n == 0   = []
-  | V.null v = []
-  | otherwise = firstChunk : chunkVec n rest
+    | n == 0   = []
+    | V.null v = []
+    | otherwise = firstChunk : chunkVec n rest
   where
     (firstChunk, rest) = V.splitAt n v

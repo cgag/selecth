@@ -110,8 +110,8 @@ findMatches memo qry chs =
   where
     newMatches = getMatches qry chs
     getMatches q cs = V.map fst
-                        . sortImmutableVec (flip compare `on` snd)
-                        . V.filter (\(_,cScore) -> cScore > 0)
+                        . sortImmutableVec (flip compare `on` s_score . snd)
+                        . V.filter (\(_,cScore) -> s_score cScore > 0)
                         $ scoreAll q cs
     sortImmutableVec f v = runST $ do
                               vec <- V.thaw v

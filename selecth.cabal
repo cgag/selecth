@@ -26,6 +26,7 @@ executable selecth
                      , ansi-terminal
                      , terminal-size
                      , parallel 
+                     , deepseq 
                      , vector >= 0.10 && < 0.11
                      , vector-algorithms
   hs-source-dirs:      src
@@ -36,6 +37,7 @@ executable benchmark
   main-is:           Benchmark.hs
   build-depends:       base
                      , text 
+                     , deepseq 
                      , containers 
                      , process 
                      , ansi-terminal 
