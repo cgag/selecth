@@ -12,7 +12,7 @@ import           Control.Parallel.Strategies
 import           Control.DeepSeq
 import           Data.Text                   (Text)
 import Control.Applicative ((<$>))
-import Data.Maybe
+import Control.Arrow (first)
 import qualified Data.Text                   as T
 import Data.Function (on)
 import           Data.Vector                 (Vector)
@@ -45,9 +45,9 @@ matchLength m = m_endPos m - m_startPos m
 
 normalizeScore :: Match -> Text -> Text -> Double
 normalizeScore match query choice =
-        fromIntegral (T.length query)
-        / fromIntegral (matchLength match) -- penalize longer match lengths
-        / fromIntegral (T.length choice)   -- penalize longer choice strings
+    fromIntegral (T.length query)
+    / fromIntegral (matchLength match) -- penalize longer match lengths
+    / fromIntegral (T.length choice)   -- penalize longer choice strings
 
 
 -- TODO: matchlenghts could probably be a fold over the chars
@@ -59,12 +59,12 @@ score q c
     | otherwise =
       case shortestMatch of
         Nothing -> Score 0 (Match 0 0)
-        Just m  -> Score { s_score = (normalizeScore m q c)
+        Just m  -> Score { s_score = normalizeScore m q c
                          , s_match = m
                          }
   where
     shortestMatch :: Maybe Match
-    shortestMatch = L.minimumBy (compare `on` matchLength) <$> (matches q c)
+    shortestMatch = L.minimumBy (compare `on` matchLength) <$> matches q c
 
 
 matches :: Text -> Text -> Maybe [Match]
@@ -73,22 +73,23 @@ matches query choice = if null candidates
                        else Just candidates
   where
     candidates :: [Match]
-    candidates = map (\(chs, startPos) ->
-                        Match { m_startPos = startPos
-                              , m_endPos = startPos + getMatchLength query chs
-                              })
-                     (starts query choice)
+    candidates =
+       map (\(matchLen, startPos) -> Match startPos (startPos + matchLen))
+       . filter (\(matchLen, _)  -> matchLen > 0)
+       . map (first (getMatchLength query))
+       $ starts query choice
 
     starts :: Text -> Text -> [(Text, Int)]
     starts q c = filter (\(t, _) -> T.head t == T.head q)
                  . filter (\(t, _) -> (not . T.null $ t))
                  $ zip (T.tails c) [0..]
 
-    getMatchLength q c = go 0 q c
+    getMatchLength :: Text -> Text -> Int
+    getMatchLength = go 0
      where
         go n q c
           | T.null q = n
-          | T.null c = 100000 -- no match
+          | T.null c = 0 -- no match
           | otherwise = if T.head q == T.head c
                         then go (n + 1) (T.drop 1 q) (T.drop 1 c)
                         else go (n + 1) q (T.drop 1 c)
