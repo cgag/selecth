@@ -20,6 +20,7 @@ import qualified Data.Vector                 as V
 import           GHC.Conc                    (numCapabilities)
 import qualified Data.List as L
 
+import Debug.Trace.Err
 
 data Match = Match
     { m_startPos :: Int
@@ -41,7 +42,7 @@ instance NFData Score where
 -- TODO: add tests
 
 matchLength :: Match -> Int
-matchLength m = m_endPos m - m_startPos m
+matchLength m = (m_endPos m - m_startPos m) + 1
 
 normalizeScore :: Match -> Text -> Text -> Double
 normalizeScore match query choice =
@@ -68,7 +69,7 @@ score q c
 
 
 matches :: Text -> Text -> Maybe [Match]
-matches query choice = if null candidates
+matches query choice = trace ("query: " <> query) $ if null candidates
                        then Nothing
                        else Just candidates
   where

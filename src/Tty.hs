@@ -31,9 +31,18 @@ withCursorHidden tty action = do
 
 writeLine :: Handle -> Int -> (Text, SGR) -> IO ()
 writeLine tty maxLen (line, sgr) = do
+    let line' = T.take maxLen line
+    let (start, end) = (2, 4)
+    let (left, rightTmp) = T.splitAt start line'
+    let (middle, right)  = T.splitAt (end - start) rightTmp
+
     clearCurrentLine tty
     hSetSGR tty [sgr]
-    T.hPutStr tty (T.take maxLen line)
+    T.hPutStr tty left
+    hSetSGR tty [SetColor Foreground Vivid Red]
+    T.hPutStr tty middle
+    hSetSGR tty [Reset]
+    T.hPutStr tty right
     hCursorDown tty 1
 
 -- TODO: resizing is nice, but how does calling size repeatedly

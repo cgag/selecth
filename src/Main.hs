@@ -32,6 +32,8 @@ import           Tty
 {- TODO: look into resource monad for ensuring tty gets closed? -}
 {- TODO: state monad? passing around matches and memo tables is cumbersome -}
 
+import Debug.Trace.Err
+
 prompt :: Text
 prompt = "> "
 
@@ -104,7 +106,7 @@ charToKeypress c = fromMaybe (if isPrint c then PlainChar c else Invisible)
 
 findMatches :: Memo -> Text -> Vector Text -> (Vector Text, Memo)
 findMatches memo qry chs =
-    case M.lookup qry memo of
+    trace ("qry: " <> qry <> " chs: " <> (T.pack . show $ chs)) $ case M.lookup qry memo of
        Just mtchs -> (mtchs, memo)
        Nothing    -> (newMatches, M.insert qry newMatches memo)
   where
