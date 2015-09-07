@@ -76,7 +76,7 @@ data Action = SearchAction !SearchAction | ExitAction !ExitAction
 
 data SearchAction = Extend !Text
                   | DropWord
-                  | DropChars Int
+                  | DropChars !Int
                   | Clear
                   | SelectPrev
                   | SelectNext
@@ -92,7 +92,7 @@ specialChars = M.fromList [ ('\ETX', CtrlC)
                           , ('\r',   Enter)
                           , ('\DEL', Backspace)
                           , ('\BS',  CtrlH)
-                          , ('\NAK',  CtrlU)
+                          , ('\NAK', CtrlU)
                           , ('\SO',  CtrlN)
                           , ('\DLE', CtrlP)
                           , ('\ETB', CtrlW)

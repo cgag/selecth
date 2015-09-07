@@ -16,9 +16,11 @@ cabal-version:       >=1.10
 
 
 executable selecth
-  ghc-options:       -Wall -threaded -O2 "-with-rtsopts = -N -H1g"
+  ghc-options:       -Wall -funbox-strict-fields -threaded 
+                     -O2 "-with-rtsopts = -N -H1g"
+                     -fllvm
   main-is:             Main.hs
-  build-depends:       base >= 4.7 && < 4.8
+  build-depends:       base >= 4.7
                      , text 
                      , bytestring
                      , containers
@@ -32,7 +34,9 @@ executable selecth
   default-language:    Haskell2010
 
 executable benchmark  
-  ghc-options:       -threaded -O2  "-with-rtsopts = -N -H1g"
+  ghc-options:       -funbox-strict-fields -threaded 
+                     -O2  "-with-rtsopts = -N -H1g"
+                     -fllvm
   main-is:           Benchmark.hs
   build-depends:       base
                      , text 
@@ -46,5 +50,6 @@ executable benchmark
                      , vector >= 0.10 && < 0.11
                      , vector-algorithms
 
-  hs-source-dirs:      test/benchmark, src
+  hs-source-dirs:  test/benchmark
+                 , src
   default-language:    Haskell2010
