@@ -1,13 +1,17 @@
 {-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Score where
 
 import           Control.Parallel.Strategies
+import Data.Monoid ((<>))
 import           Data.Text                   (Text)
 import qualified Data.Text                   as T
 import           Data.Vector                 (Vector)
 import qualified Data.Vector                 as V
 import           GHC.Conc                    (numCapabilities)
+
+import Debug.Trace.Err
 
 -- TODO: add tests
 
@@ -51,18 +55,23 @@ score q choice
 
 
 scoreAll :: Text -> Vector Text -> Vector (Text, Double)
-scoreAll query choices = 
+scoreAll query choices =  
     V.concat $
       parMap rdeepseq
              scoreVec
-             (chunkVec (V.length choices `div` numCapabilities) choices)
+             (chunkVec (V.length choices `div` cores) choices)
     where
+      cores = trace ("Num numCapabilities: " <> T.pack (show numCapabilities)) 
+                    numCapabilities
       scoreVec = V.map (\choice -> (choice, score lowerQuery (T.toLower choice)))
       lowerQuery = T.toLower query
 
+serialScoreAll :: Text -> Vector Text -> Vector (Text, Double)
+serialScoreAll query = V.map (\choice -> (choice, score (T.toLower query) (T.toLower choice)))
+
 chunkVec :: Int -> Vector a -> [Vector a]
 chunkVec n v
-  | n == 0   = []
+  | n <= 1   = [v]
   | V.null v = []
   | otherwise = firstChunk : chunkVec n rest
   where

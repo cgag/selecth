@@ -2,29 +2,29 @@
 
 import Test.Tasty
 import Test.Tasty.QuickCheck as QC
+import Test.Tasty.Hspec
 
 import Data.List
 import Data.Ord
 
+import Data.Text (Text)
+import qualified Data.Text as T
 import qualified Data.Vector as V
 
 import Score
 
-main = defaultMain tests
+main = do
+  hspecTest <- testSpec "hspec" hspecSpec 
+  defaultMain $ testGroup "Tests" [ hspecTest ]
 
-tests :: TestTree
-tests = testGroup "Tests" [properties]
+hspecSpec = do
+  describe "1 + 1 = 2" $ do
+    it "whatever" $ do
+      property $ \(list :: [Int]) n -> 
+        V.concat (chunkVec n (V.fromList list)) == V.fromList list
 
-properties :: TestTree
-properties = testGroup "Properties" [qcProps]
-
-qcProps = testGroup "(checked by QuickCheck)"
-  [ QC.testProperty "chunkvec works" $
-      \(list :: [Int]) n -> 
-          n >= 1 QC.==>
-            V.concat (chunkVec n (V.fromList list)) == V.fromList list
-  -- the following property does not hold
-  -- , QC.testProperty "Fermat's last theorem" $
-  --     \x y z n ->
-  --       (n :: Integer) >= 3 QC.==> x^n + y^n /= (z^n :: Integer)
-  ]
+    it "whatever2" $ do
+      property $ \(query :: String) (choices :: [String]) ->
+          let cs = V.fromList (map T.pack choices) in
+          let q  = T.pack query in
+          serialScoreAll q cs == scoreAll q cs
