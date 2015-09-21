@@ -51,16 +51,14 @@ score q choice
 
 
 scoreAll :: Text -> Vector Text -> Vector (Text, Double)
-scoreAll query choices = V.map (\choice -> (choice, score (T.toLower query) 
-                                                          (T.toLower choice)))
-                               choices
-    -- V.concat $
-    --   parMap rdeepseq
-    --          scoreVec
-    --          (chunkVec (V.length choices `div` numCapabilities) choices)
-  -- where
-  --   scoreVec = V.map (\choice -> (choice, score lowerQuery (T.toLower choice)))
-  --   lowerQuery = T.toLower query
+scoreAll query choices = 
+    V.concat $
+      parMap rdeepseq
+             scoreVec
+             (chunkVec (V.length choices `div` numCapabilities) choices)
+    where
+      scoreVec = V.map (\choice -> (choice, score lowerQuery (T.toLower choice)))
+      lowerQuery = T.toLower query
 
 chunkVec :: Int -> Vector a -> [Vector a]
 chunkVec n v

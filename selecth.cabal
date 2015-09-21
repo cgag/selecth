@@ -54,3 +54,28 @@ executable benchmark
   hs-source-dirs:  test/benchmark
                  , src
   default-language:    Haskell2010
+
+test-suite test
+  default-language:
+    Haskell2010
+  type:
+    exitcode-stdio-1.0
+  hs-source-dirs:
+    src
+    test
+  main-is:
+    test.hs
+  build-depends:  base 
+                , tasty
+                , tasty-hspec
+                , tasty-quickcheck 
+                , text 
+                , containers 
+                , process 
+                , ansi-terminal 
+                , terminal-size
+                , safe 
+                , parallel 
+                , criterion
+                , vector >= 0.10 && < 0.11
+                , vector-algorithms
