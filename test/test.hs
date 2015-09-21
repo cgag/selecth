@@ -18,13 +18,7 @@ main = do
   defaultMain $ testGroup "Tests" [ hspecTest ]
 
 hspecSpec = do
-  describe "1 + 1 = 2" $ do
-    it "whatever" $ do
+  describe "chunkVec" $ do
+    it "concatting the chunks gives the original vec" $ do
       property $ \(list :: [Int]) n -> 
         V.concat (chunkVec n (V.fromList list)) == V.fromList list
-
-    it "whatever2" $ do
-      property $ \(query :: String) (choices :: [String]) ->
-          let cs = V.fromList (map T.pack choices) in
-          let q  = T.pack query in
-          serialScoreAll q cs == scoreAll q cs

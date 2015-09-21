@@ -59,15 +59,11 @@ scoreAll query choices =
     V.concat $
       parMap rdeepseq
              scoreVec
-             (chunkVec (V.length choices `div` cores) choices)
+             (chunkVec (V.length choices `div` numCapabilities) choices)
     where
-      cores = trace ("Num numCapabilities: " <> T.pack (show numCapabilities)) 
-                    numCapabilities
       scoreVec = V.map (\choice -> (choice, score lowerQuery (T.toLower choice)))
       lowerQuery = T.toLower query
 
-serialScoreAll :: Text -> Vector Text -> Vector (Text, Double)
-serialScoreAll query = V.map (\choice -> (choice, score (T.toLower query) (T.toLower choice)))
 
 chunkVec :: Int -> Vector a -> [Vector a]
 chunkVec n v
