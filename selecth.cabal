@@ -19,7 +19,7 @@ executable selecth
   ghc-options:       -Wall 
                      -threaded 
                      -O2 
-                     "-with-rtsopts = -N -H1g"
+                     "-with-rtsopts = -N"
   main-is:             Main.hs
   build-depends:       base >= 4.7
                      , text 
@@ -37,7 +37,7 @@ executable selecth
 executable benchmark  
   ghc-options:       -threaded 
                      -O2  
-                     "-with-rtsopts = -N -H1g"
+                     "-with-rtsopts = -N"
   main-is:           Benchmark.hs
   build-depends:       base
                      , text 
