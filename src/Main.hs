@@ -179,14 +179,13 @@ handleInput inputText search = T.foldr buildActions [] inputText
 
 collapseActions :: [Action] -> [Action]
 collapseActions = foldr collapse []
-  where
-    collapse (SearchAction (Extend t)) (SearchAction (Extend t'):as) =
-        SearchAction (Extend (t <> t')) : as
-    collapse (SearchAction (DropChars n)) (SearchAction (DropChars m):as) =
-        SearchAction (DropChars $ n + m) : as
-    collapse nextA as = nextA : as
+  where collapse (SearchAction (Extend t)) (SearchAction (Extend t'):as) =
+          SearchAction (Extend (t <> t')) : as
+        collapse (SearchAction (DropChars n)) (SearchAction (DropChars m):as) =
+          SearchAction (DropChars $ n + m) : as
+        collapse nextA as = nextA : as
 
-buildSearch ::SearchAction -> Search -> Int -> Memo -> (Search, Memo)
+buildSearch :: SearchAction -> Search -> Int -> Memo -> (Search, Memo)
 buildSearch action search choicesToShow memo =
     case action of
         Extend qAddition -> (search', memo')
