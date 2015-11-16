@@ -25,6 +25,7 @@ executable selecth
                      , text 
                      , bytestring
                      , containers
+                     , unordered-containers
                      , process
                      , ansi-terminal
                      , terminal-size

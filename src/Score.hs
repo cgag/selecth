@@ -60,9 +60,9 @@ scoreAll query choices =
       parMap rdeepseq
              scoreVec
              (chunkVec (V.length choices `div` numCapabilities) choices)
-    where
-      scoreVec = V.map (\choice -> (choice, score lowerQuery (T.toLower choice)))
-      lowerQuery = T.toLower query
+  where
+    scoreVec = V.map (\choice -> (choice, score q (T.toLower choice)))
+    q = T.toLower query
 
 
 chunkVec :: Int -> Vector a -> [Vector a]

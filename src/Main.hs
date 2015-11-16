@@ -6,7 +6,7 @@ import           Control.Monad.ST
 import qualified Data.ByteString              as B
 import           Data.Char                    (isPrint, isSpace)
 import           Data.Function                (on)
-import qualified Data.Map.Strict              as M
+import qualified Data.HashMap.Strict          as M
 import           Data.Maybe                   (fromMaybe)
 import           Data.Monoid                  ((<>))
 import           Data.Text                    (Text)
@@ -46,7 +46,7 @@ data KeyPress = CtrlC
               | Backspace
               | PlainChar Char
 
-type Memo = M.Map Text (Vector Text)
+type Memo = M.HashMap Text (Vector Text)
 
 data Search = Search
     { query     :: !Text
@@ -87,7 +87,7 @@ data ExitAction   = Abort
                   | MakeChoice !Search
   deriving Show
 
-specialChars :: M.Map Char KeyPress
+specialChars :: M.HashMap Char KeyPress
 specialChars = M.fromList [ ('\ETX', CtrlC)
                           , ('\r',   Enter)
                           , ('\DEL', Backspace)
@@ -163,7 +163,10 @@ writeSelection tty (Search {matches=matches', selection=sel}) = do
 handleInput :: Text -> Search -> [Action]
 handleInput inputText search = T.foldr buildActions [] inputText
   where
+    buildActions :: Char -> [Action] -> [Action]
     buildActions c xs = actionFor c : xs
+
+    actionFor :: Char -> Action
     actionFor c =
       case charToKeypress c of
           Enter     -> ExitAction (MakeChoice search)
@@ -179,10 +182,14 @@ handleInput inputText search = T.foldr buildActions [] inputText
 
 collapseActions :: [Action] -> [Action]
 collapseActions = foldr collapse []
-  where collapse (SearchAction (Extend t)) (SearchAction (Extend t'):as) =
+  where collapse (SearchAction (Extend t)) 
+                 (SearchAction (Extend t'):as) =
           SearchAction (Extend (t <> t')) : as
-        collapse (SearchAction (DropChars n)) (SearchAction (DropChars m):as) =
-          SearchAction (DropChars $ n + m) : as
+
+        collapse (SearchAction (DropChars n)) 
+                 (SearchAction (DropChars m):as) =
+          SearchAction (DropChars (n + m)) : as
+
         collapse nextA as = nextA : as
 
 buildSearch :: SearchAction -> Search -> Int -> Memo -> (Search, Memo)
