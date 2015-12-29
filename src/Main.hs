@@ -205,7 +205,7 @@ buildSearch action search choicesToShow memo =
         DropWord    -> memoSearch $ dropLastWord (query search)
         DropChars n -> memoSearch $ T.dropEnd n (query search)
         Clear       -> if T.null (query search)
-                       then (search, memo) -- why isn't this being hit?
+                       then (search, memo)
                        else memoSearch ""
         Ignore     -> (search, memo)
         SelectNext -> moveSel 1
